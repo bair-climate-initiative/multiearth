@@ -1,0 +1,24 @@
+dataset_name: sndemo
+output: ./output/${dataset_name}
+
+log_path: ${output}/main.log
+credentials: TODO
+
+item_collection: ???
+extraction_tasks: ???
+
+start_date: 2000-12-01
+end_date: 2020-12-31
+aoi: ./config/aoi/demo.json
+collections:
+  cop-dem-glo-90: 
+    assets:
+      - data
+  # - landsat-8-c2-l2
+  #   assets:
+  #     - SR_B3
+  #     - SR_B4
+  #     - SR_B5
+    
+providers:
+  - _target_: metaearth.provider.mpc.MicrosoftPlanetaryComputer
