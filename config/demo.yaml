@@ -1,24 +1,62 @@
-dataset_name: sndemo
-output: ./output/${dataset_name}
+# Annotated demo configuration
 
-log_path: ${output}/main.log
-credentials: TODO
+# fallback for each collection
+# where each of these entries can be overridden 
+# in each collection config under "collections"
+default_collection:
+  # will output to ${output}/collection_name/ by default, can override as an entry in the collection config
+  outdir: /home/cjrd/data/satellite/demo-extraction
+  # default datetime range for each collection (use XYZ format <link>), can override as an entry in the collection config
+  datetime: 2021-04-01/2021-04-23
+  # default aoi for each collection (use XYZ format <link>), can override as an entry in the collection config
+  aoi_file: ./config/aoi/demo.json
+  # default provider for each collection, can override as an entry in the collection config
+  provider: 
+    name: MPC
 
-item_collection: ???
-extraction_tasks: ???
-
-start_date: 2000-12-01
-end_date: 2020-12-31
-aoi: ./config/aoi/demo.json
-collections:
-  cop-dem-glo-90: 
+# collections describe the assets to extract.
+# the collection id, e.g. cop-dem-glo-90
+# is the id used to find the collection
+# in this case copernicus DEM global 90m
+# from the provider, in this case
+# microsoft planetary computer
+collections: 
+  cop-dem-glo-90:
+    outdir: /home/cjrd/data/satellite/demo-extraction-dem-glo-90
     assets:
       - data
-  # - landsat-8-c2-l2
-  #   assets:
-  #     - SR_B3
-  #     - SR_B4
-  #     - SR_B5
-    
-providers:
-  - _target_: metaearth.provider.mpc.MicrosoftPlanetaryComputer
+  landsat-8-c2-l2:
+    datetime: 2021-01-11/2021-01-28
+    aoi_file: ./config/aoi/demo-subset.json
+    assets:
+      - SR_B3
+      - SR_B4
+      - SR_B5
+  ## Another example, but sen 1 files are huge, so commented out
+  # sentinel-1-rtc:
+  #   datetime: 2021-04-21/2021-04-23
+  #   aoi_file: ./config/aoi/demo-subset.json
+  #   assets: 
+  #     - all    
+
+system:
+  # how many concurrent threads to use for 
+  # extracting the assets
+  # set to -1 to use all available threads
+  max_concurrent_extractions: 10
+
+  # number of times to try redownloading assets if error/issues encountered
+  max_download_retries: 3
+
+  # DEBUG, INFO, WARN, ERROR, FATAL
+  log_level: DEBUG
+  
+  # Write the logs here
+  log_outdir: ./logs
+
+  # don't actually download, just print out what would be downloaded
+  dry_run: False
+
+  # Remove existing files if their filesize does not match the size 
+  # of the asset on the remote server and re-extract
+  remove_existing_if_wrong_size: True
