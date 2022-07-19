@@ -1,29 +1,36 @@
+"""Exposes access to providers, such as Microsoft Planetary Computer."""
 from enum import Enum
+from typing import Any
 
 from metaearth.util.misc import dict_hash
 
 from .base import BaseProvider
 from .mpc import MicrosoftPlanetaryComputer
 
+__all__ = ["get_provider", "ProviderKey", "BaseProvider", "MicrosoftPlanetaryComputer"]
+
 
 class ProviderKey(Enum):
-    """Helper class for provider naming"""
+    """Helper class for identifying providers."""
+
     MPC = MicrosoftPlanetaryComputer
-    
+
+
 # keep track of providers instantiated with given args
 _provider_store = {}
-def get_provider(provider_name: ProviderKey, **kwargs) -> BaseProvider:
-    """ Get a provider instance by name
-    """
+
+
+def get_provider(provider_name: ProviderKey, **kwargs: Any) -> BaseProvider:
+    """Get a provider instance by name."""
     args_hash = dict_hash(kwargs)
     key_str = f"{provider_name}_{args_hash}"
     if key_str not in _provider_store:
-        # create provider instance since it doesn't exist in the store with given args    
+        # create provider instance since it doesn't exist in the store with given args
         if provider_name == ProviderKey.MPC:
             provider = MicrosoftPlanetaryComputer(**kwargs)
         else:
             raise ValueError(f"Unknown provider {provider_name}")
-            
+
         if provider is not None:
             _provider_store[key_str] = provider
 

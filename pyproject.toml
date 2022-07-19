@@ -1,0 +1,106 @@
+[build-system]
+requires = [
+    # setuptools 42+ required for metadata.license_files support in setup.cfg
+    "setuptools>=42,<64",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+target-version = ["py37", "py38", "py39"]
+color = true
+skip_magic_trailing_comma = true
+
+[tool.coverage.report]
+# Ignore warnings for overloads
+# https://github.com/nedbat/coveragepy/issues/970#issuecomment-612602180
+exclude_lines = [
+    "pragma: no cover",
+    "@overload",
+]
+
+[tool.isort]
+profile = "black"
+known_first_party = ["docs", "tests", "torchgeo", "train"]
+skip_gitignore = true
+color_output = true
+
+[tool.mypy]
+ignore_missing_imports = true
+show_error_codes = true
+exclude = "(build|data|dist|docs/src|images|logo|logs|output)/"
+
+# Strict
+warn_unused_configs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+
+[tool.pydocstyle]
+convention = "google"
+match_dir = "(datamodules|datasets|losses|models|samplers|torchgeo|trainers|transforms)"
+
+[tool.pytest.ini_options]
+# Skip slow tests by default
+addopts = "-m 'not slow'"
+# https://docs.pytest.org/en/latest/how-to/capture-warnings.html
+filterwarnings = [
+    # Treat all warnings as errors
+    "error",
+
+    # Warnings raised by dependencies of dependencies, out of our control
+    # https://github.com/Cadene/pretrained-models.pytorch/issues/221
+    "ignore:.* is deprecated and will be removed in Pillow 10:DeprecationWarning:pretrainedmodels.datasets.utils",
+    # https://github.com/pytorch/vision/pull/5898
+    "ignore:.* is deprecated and will be removed in Pillow 10:DeprecationWarning:torchvision.transforms.functional_pil",
+    # https://github.com/rwightman/pytorch-image-models/pull/1256
+    "ignore:.* is deprecated and will be removed in Pillow 10:DeprecationWarning:timm.data",
+    # https://github.com/pytorch/pytorch/issues/72906
+    # https://github.com/pytorch/pytorch/pull/69823
+    "ignore:distutils Version classes are deprecated. Use packaging.version instead:DeprecationWarning:torch.utils.tensorboard",
+    "ignore:The distutils package is deprecated and slated for removal in Python 3.12:DeprecationWarning:torch.utils.tensorboard",
+    # https://github.com/PyTorchLightning/pytorch-lightning/issues/13256
+    # https://github.com/PyTorchLightning/pytorch-lightning/pull/13261
+    "ignore:torch.distributed._sharded_tensor will be deprecated:DeprecationWarning:torch.distributed._sharded_tensor",
+    # https://github.com/rasterio/rasterio/issues/1742
+    # https://github.com/rasterio/rasterio/pull/1753
+    "ignore:Using or importing the ABCs from 'collections' instead of from 'collections.abc' is deprecated:DeprecationWarning:rasterio.crs",
+    # https://github.com/pytorch/pytorch/issues/60053
+    # https://github.com/pytorch/pytorch/pull/60059
+    "ignore:Named tensors and all their associated APIs are an experimental feature and subject to change:UserWarning:torch.nn.functional",
+    # https://github.com/tensorflow/tensorboard/issues/5798
+    "ignore:Call to deprecated create function:DeprecationWarning:tensorboard.compat.proto",
+    # https://github.com/treebeardtech/nbmake/issues/68
+    'ignore:The \(fspath. py.path.local\) argument to NotebookFile is deprecated:pytest.PytestDeprecationWarning:nbmake.pytest_plugin',
+
+    # Expected warnings
+    # pytorch-lightning warns us about using num_workers=0, but it's faster on macOS
+    "ignore:The dataloader, .*, does not have many workers which may be a bottleneck:UserWarning",
+    # pytorch-lightning warns us about using the CPU when a GPU is available
+    "ignore:GPU available but not used.:UserWarning",
+
+    # Unexpected warnings, worth investigating
+    # pytorch-lightning is having trouble inferring the batch size for ChesapeakeCVPRDataModule and CycloneDataModule for some reason
+    "ignore:Trying to infer the `batch_size` from an ambiguous collection:UserWarning",
+]
+markers = [
+    "slow: marks tests as slow",
+]
+norecursedirs = [
+    ".ipynb_checkpoints",
+    "data",
+    "__pycache__",
+]
+testpaths = [
+    "tests",
+    "docs/tutorials",
+]

@@ -1,6 +1,6 @@
 # MetaEarth
 ![MetaEarth Diagram-2](https://user-images.githubusercontent.com/1455579/174143989-b04c6a22-8064-4850-897b-fe50ae7243e4.png)
-Download remote sensing data from any provider through a single config.
+Download any remote sensing data from any provider using a single config.
 
 **Warning:** This is a very early alpha version of MetaEarth: things will change quickly, with little/no warning. Right now, there is no pip/conda-installable version of MetaEarth (you must git clone this repo).
 
@@ -18,7 +18,25 @@ pip install -e .
 ```
 
 
-## Development
+## Contributing and Development
+The general flow for development looks like this:
+0. Read the Getting Started Guide - make sure you can sucessfully download some data, and make sure to install this repository in editable mode `pip install -e .`
+```
+pip install -e .
+```
+
+1. Create a new branch for your feature.
+
+2. Edit the code.
+
+3. Run linters and tests (see subsections below)
+
+4. Commit your changes, push to the branch, and open a pull request. 
+
+5. ???
+
+6. Profit
+
 
 ### Linting
 Similar to [TorchGeo](https://torchgeo.readthedocs.io/en/stable/user/contributing.html#linters), we use the following linters:
@@ -46,7 +64,7 @@ MetaEarth uses a single configuration format to acquire data from any data provi
 
 <!-- TODO: discuss when to use more than one config file for a set of imagery -->
 
-## Provider Configurations f
+## Provider Configurations
 Each provider needs its own authentication and setup. For each provider you'd like to use, follow the set-up instructions below.
 
 ### Microsoft Planetary Computer
@@ -54,13 +72,6 @@ Each provider needs its own authentication and setup. For each provider you'd li
 Make sure to run the following and enter your api key (this helps increase the amount of data you can download from MPC).
 ```
 planetarycomputer configure 
-```
-
-
-
-## Development
-```
-pip install -e .
 ```
 
 ## Related Projects

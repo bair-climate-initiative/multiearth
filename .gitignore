@@ -132,3 +132,8 @@ dmypy.json
 tmp
 scratch
 .DS_Store
+logs
+data
+output
+outputs
+sql_outputs
