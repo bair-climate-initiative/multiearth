@@ -23,6 +23,33 @@ from metaearth.util.stac import (
 )
 
 
+def _download_worker_task(
+    q: "JoinableQueue[ExtractAsset]",
+    done_q: "Queue[ExtractAsset]",
+    err_q: "Queue[Tuple[ExtractAsset, Exception]]",
+    num_retries: int,
+) -> None:
+    """Worker task for downloading assets."""
+    while True:
+        ast = q.get()
+        try:
+            ast.download()
+            done_q.put(ast)
+        except Exception as ex:
+            if ast.download_attempts < num_retries:
+                logger.debug(
+                    f"Will retry ({ast.download_attempts}/{num_retries} attempts so far): "
+                    + f"\nEncountered error while downloading {ast}: {ex}"
+                )
+
+                # requeue the asset for retry
+                q.put(ast)
+            else:
+                logger.error(f"===\nFailed to download {ast}:\n>>>\n {ex}\n")
+                err_q.put((ast, ex))
+        q.task_done()
+
+
 def _create_download_workers_and_queues(
     num_workers: int, num_retries: int
 ) -> Tuple[
@@ -41,35 +68,11 @@ def _create_download_workers_and_queues(
                   communicating between workers and main process
     """
 
-    def worker_task(
-        q: "JoinableQueue[ExtractAsset]",
-        done_q: "Queue[ExtractAsset]",
-        err_q: "Queue[Tuple[ExtractAsset, Exception]]",
-    ) -> None:
-        while True:
-            ast = q.get()
-            try:
-                ast.download()
-                done_q.put(ast)
-            except Exception as ex:
-                if ast.download_attempts < num_retries:
-                    logger.debug(
-                        f"Will retry ({ast.download_attempts}/{num_retries} attempts so far): "
-                        + f"\nEncountered error while downloading {ast}: {ex}"
-                    )
-
-                    # requeue the asset for retry
-                    q.put(ast)
-                else:
-                    logger.error(f"===\nFailed to download {ast}:\n>>>\n {ex}\n")
-                    err_q.put((ast, ex))
-            q.task_done()
-
     job_q: "JoinableQueue[ExtractAsset]" = JoinableQueue()
     finished_q: "Queue[ExtractAsset]" = Queue()
     fail_q: "Queue[Tuple[ExtractAsset, Exception]]" = Queue()
     workers = [
-        Process(target=worker_task, args=(job_q, finished_q, fail_q), daemon=True)
+        Process(target=_download_worker_task, args=(job_q, finished_q, fail_q, num_retries), daemon=True)
         for _ in range(num_workers)
     ]
     for p in workers:
