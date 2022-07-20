@@ -11,9 +11,11 @@ default_collection:
   # default datetime range for each collection (use XYZ format <link>), can override as an entry in the collection config
   datetime: 2021-04-01/2021-04-23
   # default aoi for each collection (use XYZ format <link>), can override as an entry in the collection config
+  # this demo contains a small section in Yosemite
   aoi_file: config/aoi/demo.json
   # default provider for each collection, can override as an entry in the collection config
   provider: 
+    # MPC is the identifier for Microsoft Planetary Computer
     name: MPC
 
 # collections describe the assets to extract.
@@ -21,23 +23,26 @@ default_collection:
 # is the id used to find the collection
 # in this case copernicus DEM global 90m
 # from the provider, in this case
-# microsoft planetary computer
+# Microsoft Planetary Computer
 collections: 
   cop-dem-glo-90:
     outdir: data/demo-extraction-dem-glo-90
+    # Explicitly set the assets to be downloaded or use `all` to download all assets, like this:
+    # assets:
+    #  - all
     assets:
       - data
   ##
-  # ~50-100mb assets; commented out for demo but uncomment to test
-  landsat-8-c2-l2:
-    datetime: 2021-01-11/2021-01-28
-    aoi_file: ./config/aoi/demo-subset.json
-    assets:
-      - SR_B3
-      - SR_B4
-      - SR_B5
+  # Adds about 900mb of assets; commented out for demo but uncomment to test
+  # landsat-8-c2-l2:
+  #   datetime: 2021-01-11/2021-01-28
+  #   aoi_file: ./config/aoi/demo-subset.json
+  #   assets:
+  #     - SR_B3
+  #     - SR_B4
+  #     - SR_B5
   ##
-  ## Another example, but sen 1 files are huge, so commented out
+  ## Another example, but sen 1 files are huge, so commented out (adds 10gb)
   # sentinel-1-rtc:
   #   datetime: 2021-04-21/2021-04-23
   #   aoi_file: ./config/aoi/demo-subset.json
@@ -59,10 +64,10 @@ system:
   # Write the logs here
   log_outdir: ./logs
 
-  # don't actually download, just print out what would be downloaded
-  dry_run: False
-
   # Remove existing files if their filesize does not match the size 
   # of the asset on the remote server and re-extract
   remove_existing_if_wrong_size: True
+
+  # don't actually download, just print out what would be downloaded
+  dry_run: False
   
