@@ -12,6 +12,10 @@
 Install MetaEarth as a library and download about 18MB of [Copernicus DEM](https://planetarycomputer.microsoft.com/dataset/cop-dem-glo-90) data from Microsoft Planetary Computer -- this small example should Just Work™ without any additional authentication.
 
 ```bash
+# OPTIONAL: set up a conda environment (use at least python 3.7)
+conda create -n metaearth python=3.8
+conda activate metaearth
+
 git clone git@github.com:bair-climate-initiative/metaearth.git
 cd metaearth
 pip install .
@@ -21,6 +25,9 @@ python metaearth/cli.py --config config/demo.yaml system.dry_run=True
 
 # If everything looks good, remove the dry_run and download Copernicus DEM data from Microsoft Planetary Computer
 python metaearth/cli.py --config config/demo.yaml
+
+# see the extracted data in the output directory
+ls data/demo-extraction-dem-glo-90/cop-dem-glo-90/
 ```
 
 **Quick Explanation:** The config we're providing, [config/demo.yaml](config/demo.yaml), contains a fully annotated example: take a look at it to get a sense of config options and how to control MetaEarth. While playing with MetaEarth, set the dryrun config option in order to display a summary of the assets without downloading anything, e.g. `system.dry_run=True`. Note that to download more/different data from Microsoft Planetary Computer, you'll want to authenticate with them (see the instructions under [Provider Configurations](#provider-configurations)).
@@ -31,18 +38,6 @@ python metaearth/cli.py --config config/demo.yaml
 
 See the *Quick Start* instructions above and then consult [config/demo.yaml](config/demo.yaml) for annotated configuration (we'll keep this annotated config updated).
 
-### Installation
-```bash
-# OPTIONAL: set up a conda environment (use at least python 3.7)
-conda create -n metaearth python=3.8
-conda activate metaearth
-
-git clone git@github.com:bair-climate-initiative/metaearth.git
-cd metaearth
-
-# install, use -e if you want it to be in editable mode, e.g. for development
-pip install -e .
-```
 
 ### MetaEarth Configuration
 The following describes some common goals for configuring MetaEarth, such as specifying a data collection, geographical region, and timerange to extract data from, or specifying a provider to download data from. Consult [config/demo.yaml](config/demo.yaml) for an annotated configuration. The configuration schemas are defined in [metaearth/config.py](metaearth/config.py): take a look at `ConfigSchema`. 
