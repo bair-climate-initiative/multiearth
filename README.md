@@ -1,5 +1,7 @@
 ## MetaEarth: Download any remote sensing data from any provider using a single config.
-![MetaEarth Diagram-2](https://user-images.githubusercontent.com/1455579/174143989-b04c6a22-8064-4850-897b-fe50ae7243e4.png)
+
+<img width="1361" alt="MetaEarth Explainer Diagram - download any data from any provider" src="https://user-images.githubusercontent.com/1455579/180137540-80b749d0-ab3d-469d-8122-f6b1a0df008f.png">
+
 
 ---
 
