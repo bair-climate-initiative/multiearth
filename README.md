@@ -1,4 +1,4 @@
-## MetaEarth: Download any remote sensing data from any provider. 1 config.
+## MetaEarth: Download any remote sensing data from any provider using a single config.
 ![MetaEarth Diagram-2](https://user-images.githubusercontent.com/1455579/174143989-b04c6a22-8064-4850-897b-fe50ae7243e4.png)
 
 ---
@@ -69,8 +69,8 @@ collections:
         # MPC is the identifier for Microsoft Planetary Computer
         # See "provider key" under "Provider Configurations"
         name: MPC
-    
 ```
+
 
 **Finding the collection id**: This depends on the individual provider (in the future, see [Provider Configurations](#provider-configurations) below), but for MPC, the following is a good starting point:
 
@@ -89,8 +89,9 @@ collections:
     assets:
       - all
     max_items: 1
+...
 ```
-1. Run a dry run to see what assets will be downloaded:
+2. Run a dry run to see what assets will be downloaded:
 ```bash
 python metaearth/cli.py --config path/to/your/config.yaml system.dry_run=True
 ```
@@ -106,7 +107,7 @@ key=SR_B5; desc="Collection 2 Level-2 Near Infrared Band 0.8 (B5) Surface Reflec
 key=SR_B6; desc="Collection 2 Level-2 Short-wave Infrared Band 1.6 (B6) Surface Reflectance"
 ...
 ```
-1. Update your config to download only the assets you want, and remove the `max_items` option:
+3. Let's say we want the RGB channels (see the descriptions), so we then update our config to download only the assets we want, and remove the `max_items` option:
 ```yaml
 collections: 
   landsat-8-c2-l2:
@@ -115,23 +116,92 @@ collections:
       - SR_B3
       - SR_B4
     max_items: 1
+...
 ```
 
 **Selecting a Region and Timerange**
+Specify region:
 
-**Output Format**:
+1. Use (something like) https://geojson.io to specify the region you care about in geojson format
+1. Save to file, e.g. `my_region.json`
+1. Set that file to the `aoi_file` key under the collection you want to extract or to `default_collection` if you want to extract it for multiple collections.
 
-**Dry run is your friend**
-
-**DEBUG logs are also your friend. You have lots of friends.**
-
-
-
+Specify a timerange by using single date+time, or a range ('/' separator), formatted to [RFC 3339, section 5.6](https://datatracker.ietf.org/doc/html/rfc3339#section-5.6). See [config/example.yaml](config/example.yaml) and it should be pretty clear. Use double dots .. for open date ranges.
 
 
+**Output Directory and Data Format**:
+The saved data will be placed in the directory format `{outdir}/{collection_id}/{item_id}/{asset_id}.{asset_appendix}`. 
+
+
+**Defaults when downloading multiple collections**
+You can specify a `default_collection` in your config, which will be inherited by all collections that don't specify a specific key, e.g.
+```yaml
+# fallback for each collection
+# where each of these entries can be overridden 
+# in each collection config under "collections"
+default_collection:
+  # will output to ${output}/collection_name/ by default, can override as an entry in the collection config
+  outdir: data/demo-extraction
+  # default datetime range for each collection, 
+  # can override as an entry in the collection config
+  # Single date+time, or a range ('/' separator), 
+  # formatted to RFC 3339, section 5.6. 
+  # Use double dots .. for open date ranges.
+  datetime: 2021-04-01/2021-04-23
+  # default aoi for each collection (use geojson format - see geojson.io)
+  # can override as an entry in the collection config
+  # this demo contains a small section in Yosemite
+  aoi_file: config/aoi/demo.json
+  # Max number of items 
+  # (not assets, e.g. each item could have 3 images)
+  # to download. -1 for unlimited (or limit set)
+  # by the provider
+  max_items: -1
+  # default provider for each collection, can override as an entry in the collection config
+  provider: 
+    # MPC is the identifier for Microsoft Planetary Computer
+    name: MPC
+```
+
+**Dry run and DEBUG are your friend. You have lots of friends.** When dialing in your configuration, keep the `system.dry_run=True` option on your call to `metaearth/cli.py` (or set it in your config). Also, set the `system.log_level=DEBUG` option to see more verbose output.
+
+### Programmatic API Usage
+Programmatic MetaEarth API usage is still under development, but very much a part of our roadmap. For now, you can roughly do the following (let us know if you're interested in API support and how you'd like to use MetaEarth in this context):
+
+```python
+from omegaconf import OmegaConf
+
+from metaearth.api import extract_assets
+from metaearth.config import ConfigSchema
+
+dict_cfg = {
+  "collections": {
+    "cop-dem-glo-90": {
+      "outdir": "data",
+      "assets": ["all"],
+      "aoi_file": "config/aoi/demo.json",
+      "datetime": "2021-04-01/2021-04-23",
+      "provider": {
+        "name": "MPC"
+      }
+    }
+  }
+}
+in_cfg = OmegaConf.create(dict_cfg)
+cfg_schema = OmegaConf.structured(ConfigSchema)
+cfg = OmegaConf.merge(cfg_schema, in_cfg)
+successfully_extracted_assets, failed_assets = extract_assets(cfg)
+print(f"Successfully extracted {len(successfully_extracted_assets)} assets. {len(failed_assets)} failed.")
+```
 
 
 ## Provider Configurations
+---
+
+**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: only Microsoft Planetary Computer is supported at the moment. Let us know if you need other providers and we can prioritize adding them.
+
+---
+
 Each provider needs its own authentication and setup. For each provider you'd like to use, follow the set-up instructions below.
 
 
