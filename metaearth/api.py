@@ -6,7 +6,7 @@ from datetime import date
 from multiprocessing import JoinableQueue, Process, Queue
 from queue import Empty
 from time import sleep
-from typing import Tuple
+from typing import Any, Dict, List, Tuple
 
 import geopandas as gpd
 from loguru import logger
@@ -16,6 +16,7 @@ from tqdm.contrib.concurrent import thread_map
 
 from metaearth.config import ConfigSchema, get_collection_val_or_default
 from metaearth.provider import get_provider
+from metaearth.provider.base import BaseProvider
 from metaearth.util.stac import (
     ExtractAsset,
     ExtractAssetCollection,
@@ -67,12 +68,15 @@ def _create_download_workers_and_queues(
           {Job queue, finished queue, failed queue} - queues for
                   communicating between workers and main process
     """
-
     job_q: "JoinableQueue[ExtractAsset]" = JoinableQueue()
     finished_q: "Queue[ExtractAsset]" = Queue()
     fail_q: "Queue[Tuple[ExtractAsset, Exception]]" = Queue()
     workers = [
-        Process(target=_download_worker_task, args=(job_q, finished_q, fail_q, num_retries), daemon=True)
+        Process(
+            target=_download_worker_task,
+            args=(job_q, finished_q, fail_q, num_retries),
+            daemon=True,
+        )
         for _ in range(num_workers)
     ]
     for p in workers:
@@ -139,15 +143,22 @@ def extract_assets(
         logger.debug(f"Preparing collection {collection_name}")
 
         # get the provider
-        pvdr_dict = get_collection_val_or_default(cfg, collection_name, "provider")
-        pvdr = get_provider(pvdr_dict["name"], **pvdr_dict["kwargs"])
+        pvdr_dict: Dict[str, Any] = get_collection_val_or_default(
+            cfg, collection_name, "provider"
+        )
+        pvdr: BaseProvider = get_provider(pvdr_dict["name"], **pvdr_dict["kwargs"])
 
         # get all other relevant config values
-        datetime_range_str = get_collection_val_or_default(
+        datetime_range_str: str = get_collection_val_or_default(
             cfg, collection_name, "datetime"
         )
-        aoi_file = get_collection_val_or_default(cfg, collection_name, "aoi_file")
-        assets = get_collection_val_or_default(cfg, collection_name, "assets")
+        aoi_file: str = get_collection_val_or_default(cfg, collection_name, "aoi_file")
+        assets: List[str] = get_collection_val_or_default(
+            cfg, collection_name, "assets"
+        )
+        max_items: int = get_collection_val_or_default(
+            cfg, collection_name, "max_items"
+        )
 
         # make sure output dir exists for later writing
         output_dir = get_collection_val_or_default(cfg, collection_name, "outdir")
@@ -167,7 +178,7 @@ def extract_assets(
 
         # find the assets to be extracted
         itm_set = list(
-            pvdr.region_to_items(region, datetime_range_str, collection_name)
+            pvdr.region_to_items(region, datetime_range_str, collection_name, max_items)
         )
 
         # create a set of extraction tasks for each item in each provider

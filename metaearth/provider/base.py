@@ -30,6 +30,7 @@ class BaseProvider(ABC):
         region: Union[shapely.geometry.Polygon, shapely.geometry.MultiPolygon],
         datetime: str,
         collection: str,
+        max_items: int,
     ) -> Iterator[pystac.Item]:
         """Create stac ItemCollection from a given region between start_date and end_date.
 
@@ -38,6 +39,7 @@ class BaseProvider(ABC):
             datetime (str): Single date+time, or a range ('/' separator), formatted to RFC 3339,
                 section 5.6. Use double dots .. for open date ranges.
             collection (str): collection to include in the returned ItemCollection
+            max_items (int): maximum number of items to return, -1 for no limit/provider limit
         Returns:
             Iterator[pystac.Item]: an iterable that contains the pystac items
         """

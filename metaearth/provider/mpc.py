@@ -31,13 +31,16 @@ class MicrosoftPlanetaryComputer(BaseProvider):
         region: Union[shapely.geometry.Polygon, shapely.geometry.MultiPolygon],
         datetime: str,
         collection: str,
+        max_items: int,
     ) -> Iterator[pystac.Item]:
         """Search the STAC Client with a given region and date in order to obtain STAC items."""
+        if max_items < 0:
+            max_items = 10000  # max items allowed by MPC STAC Client
         search = self._client.search(
             datetime=datetime,
             collections=collection,
             intersects=region,
-            max_items=10000,  # this is the max setting for MPC
+            max_items=max_items,  # this is the max setting for MPC
         )
         items: Iterator[pystac.Item] = search.items()
         return items

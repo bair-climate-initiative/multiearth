@@ -18,6 +18,7 @@ class ExtractAsset:
     """ExtractAsset represents an asset be extracted from a STAC item."""
 
     id: str = field()
+    asset_name: str = field()
     dtype: str = field()
     asset: pystac.Asset = field()
     provider: BaseProvider = field()
@@ -88,12 +89,14 @@ class ExtractAssetCollection:
 
     def summary(self) -> None:
         """Print a summary of the collection."""
-        for id, asts in self.assets.items():
-            pvdrs = "\n\t\t".join([str(a.provider) for a in asts])
-            logger.debug(
-                f"\n{id} ({asts[0].dtype}): {asts[0].filesize_mb} MB"
-                + f"\n\t{len(asts)} provider{'s' if len(asts) > 1 else ''}:\n\t\t{pvdrs}"
-            )
+        assets_types: Dict[str, str] = {}
+        for ast in self:
+            assets_types[ast.asset_name] = ast.asset.description
+            logger.debug(f"\n{ast.id} ({ast.dtype}): {ast.filesize_mb} MB")
+        ast_type_str = "\n" + "\n".join(
+            [f'key={k}; desc="{v}"' for k, v in assets_types.items()]
+        )
+        logger.info(f"Asset types: {ast_type_str}")
         logger.info(f"Total asset size: {self.total_size():,} MB")
         if self.number_of_assets_with_unknown_size() > 0:
             logger.info(
@@ -139,7 +142,13 @@ def extract_assets_from_item(
             file_size = -1
         file_type = adct.get("type", "???")
         ea = ExtractAsset(
-            f"{itm.id}_{asset_name}", file_type, asset, pvdr, outfile, file_size
+            f"{itm.id}_{asset_name}",
+            asset_name,
+            file_type,
+            asset,
+            pvdr,
+            outfile,
+            file_size,
         )
         extract_assets.add_asset(ea)
 

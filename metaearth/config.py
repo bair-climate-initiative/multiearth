@@ -37,6 +37,7 @@ class CollectionSchema:
     outdir: Optional[str] = None
     datetime: Optional[str] = None
     aoi_file: Optional[str] = None
+    max_items: int = -1
 
 
 @dataclass

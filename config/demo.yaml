@@ -1,6 +1,5 @@
-#
-# Annotated demo configuration, shows all options, many of which have default settings (see config.py for config schema)
-#
+# Annotated demo configuration, shows all options, 
+# many of which have default settings (see config.py for config schema)
 
 # fallback for each collection
 # where each of these entries can be overridden 
@@ -8,11 +7,21 @@
 default_collection:
   # will output to ${output}/collection_name/ by default, can override as an entry in the collection config
   outdir: data/demo-extraction
-  # default datetime range for each collection (use XYZ format <link>), can override as an entry in the collection config
+  # default datetime range for each collection, 
+  # can override as an entry in the collection config
+  # Single date+time, or a range ('/' separator), 
+  # formatted to RFC 3339, section 5.6. 
+  # Use double dots .. for open date ranges.
   datetime: 2021-04-01/2021-04-23
-  # default aoi for each collection (use XYZ format <link>), can override as an entry in the collection config
+  # default aoi for each collection (use geojson format - see geojson.io)
+  # can override as an entry in the collection config
   # this demo contains a small section in Yosemite
   aoi_file: config/aoi/demo.json
+  # Max number of items 
+  # (not assets, e.g. each item could have 3 images)
+  # to download. -1 for unlimited (or limit set)
+  # by the provider
+  max_items: -1
   # default provider for each collection, can override as an entry in the collection config
   provider: 
     # MPC is the identifier for Microsoft Planetary Computer
@@ -33,7 +42,7 @@ collections:
     assets:
       - data
   ##
-  # Adds about 900mb of assets; commented out for demo but uncomment to test
+  ## Adds about 900mb of assets; commented out for demo but uncomment to test
   # landsat-8-c2-l2:
   #   datetime: 2021-01-11/2021-01-28
   #   aoi_file: ./config/aoi/demo-subset.json
@@ -47,7 +56,8 @@ collections:
   #   datetime: 2021-04-21/2021-04-23
   #   aoi_file: ./config/aoi/demo-subset.json
   #   assets: 
-  #     - all    
+  #     - all
+  #   max_items: 1
 
 system:
   # how many concurrent procs to use for 
