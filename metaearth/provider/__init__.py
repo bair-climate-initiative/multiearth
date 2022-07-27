@@ -5,15 +5,15 @@ from typing import Any
 from metaearth.util.misc import dict_hash
 
 from .base import BaseProvider
+from .earthdata import EarthDataProvider
 from .mpc import MicrosoftPlanetaryComputer
-from .nsidc import NSIDCProvider
 
 __all__ = [
     "get_provider",
     "ProviderKey",
     "BaseProvider",
     "MicrosoftPlanetaryComputer",
-    "NSIDCProvider",
+    "EarthDataProvider",
 ]
 
 
@@ -21,7 +21,7 @@ class ProviderKey(Enum):
     """Helper class for identifying providers."""
 
     MPC = MicrosoftPlanetaryComputer
-    NSIDC = NSIDCProvider
+    EARTHDATA = EarthDataProvider
 
 
 # keep track of providers instantiated with given args
@@ -37,8 +37,8 @@ def get_provider(provider_name: ProviderKey, **kwargs: Any) -> BaseProvider:
         provider: BaseProvider
         if provider_name == ProviderKey.MPC:
             provider = MicrosoftPlanetaryComputer(**kwargs)
-        elif provider_name == ProviderKey.NSIDC:
-            provider = NSIDCProvider(**kwargs)
+        elif provider_name == ProviderKey.EARTHDATA:
+            provider = EarthDataProvider(**kwargs)
         else:
             raise ValueError(f"Unknown provider {provider_name}")
 

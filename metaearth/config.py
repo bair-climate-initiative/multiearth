@@ -15,7 +15,7 @@ class SystemSchema:
     log_outdir: str = field(default="./logs")
     log_level: str = "INFO"
     dry_run: bool = False
-    max_concurrent_extractions: int = 16
+    max_concurrent_extractions: int = 10
     max_download_attempts: int = 3
     remove_existing_if_wrong_size: bool = False
 
