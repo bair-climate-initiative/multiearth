@@ -5,7 +5,7 @@
 
 ---
 
-**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: things will change quickly, with little/no warning. 
+**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: things will change quickly, with little/no warning. The current MetaEarth explainer image above is aspirational: we're actively working on adding more data providers.
 
 ---
 
@@ -208,6 +208,10 @@ Make sure to run the following and enter your api key (this helps increase the a
 ```
 planetarycomputer configure 
 ```
+
+### NASA Earthdata (provider key: EDA)
+
+TODO discuss .netrc file...
 
 ## Contributing and Development
 The general flow for development looks like this:

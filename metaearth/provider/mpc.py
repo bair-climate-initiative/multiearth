@@ -1,49 +1,18 @@
 """Microsoft Planetary Computer (MPC) provider."""
 
-from typing import Iterator, Union
-
 import planetary_computer as pc
 import pystac
-import shapely
 from pystac_client import Client
 
-from .base import BaseProvider
+from .base import STACProvider
 
 
-class MicrosoftPlanetaryComputer(BaseProvider):
+class MicrosoftPlanetaryComputer(STACProvider):
     """Download data and extract assets from the Microsoft Planetary Computer."""
 
     _client: Client
-
-    def __init__(
-        self, client_url: str = "https://planetarycomputer.microsoft.com/api/stac/v1"
-    ) -> None:
-        """Setup the client to MPC."""
-        self._client = Client.open(client_url, ignore_conformance=True)
-
-    def __repr__(self) -> str:
-        """Return a string representation of the provider."""
-        return "MicrosoftPlanetaryComputer Provider"
-
-    # abstract method override
-    def region_to_items(
-        self,
-        region: Union[shapely.geometry.Polygon, shapely.geometry.MultiPolygon],
-        datetime: str,
-        collection: str,
-        max_items: int,
-    ) -> Iterator[pystac.Item]:
-        """Search the STAC Client with a given region and date in order to obtain STAC items."""
-        if max_items < 0:
-            max_items = 10000  # max items allowed by MPC STAC Client
-        search = self._client.search(
-            datetime=datetime,
-            collections=collection,
-            intersects=region,
-            max_items=max_items,  # this is the max setting for MPC
-        )
-        items: Iterator[pystac.Item] = search.items()
-        return items
+    _description: str = "Microsoft Planetary Computer (MPC)"
+    _default_client_url: str = "https://planetarycomputer.microsoft.com/api/stac/v1"
 
     # method override
     def asset_to_download_url(self, asset: pystac.Asset) -> str:
