@@ -1,0 +1,13 @@
+default_collection:
+  outdir: data/
+  datetime: 2013-01-01/2021-04-30
+  aoi_file: config/aoi/demo.json
+  provider: 
+    name: EARTHDATA
+    kwargs:
+      provider_id: NSIDC_ECS
+
+collections: 
+  ASO_50M_SD:
+    assets:
+      - data

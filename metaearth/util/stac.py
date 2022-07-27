@@ -31,12 +31,16 @@ class ExtractAsset:
         """Query the size of the asset from the download url using an http request."""
         download_url = self.provider.asset_to_download_url(self.asset)
         with requests.get(download_url, stream=True, timeout=10) as response:
-            total = int(response.headers["Content-Length"])
-            self.filesize_mb = total // 1000000
+            response.raise_for_status()
+            if response.headers.get("Content-Length"):
+                clen: str = response.headers.get("Content-Length", "")
+                self.filesize_mb = int(clen) // 1024 // 1024
+            else:
+                self.filesize_mb = -1
         return self.filesize_mb
 
     def download(self) -> None:
-        """Downloads the asset from the provider."""
+        """Download the asset from the provider."""
         self.download_attempts += 1
         download_url = self.provider.asset_to_download_url(self.asset)
         # keep track of the last download url for error reporting
@@ -46,7 +50,7 @@ class ExtractAsset:
         logger.debug(f"Downloaded {self.outfile}")
 
     def filesize_unknown(self) -> bool:
-        """Returns True if the filesize is unknown."""
+        """Return True if the filesize is unknown."""
         return self.filesize_mb <= 0
 
 
@@ -156,7 +160,7 @@ def extract_assets_from_item(
 
 
 def item_asset_to_outfile(itm: pystac.Item, asset: pystac.Asset, outdir: str) -> str:
-    """This takes an item and returns the output filename for it.
+    """Take an item and returns the output filename for it.
 
     Args:
         itm (pystac.Item): The item to get the output filename for

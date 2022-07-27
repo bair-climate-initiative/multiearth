@@ -36,3 +36,11 @@ repos:
             args: [--strict, --ignore-missing-imports, --show-error-codes]
             additional_dependencies: ['types-requests']
             exclude: (build|data|dist|logo|logs|output)/
+
+    -   repo: local
+        hooks:
+        -   id: check-autogens
+            name: Check Autogen Files
+            entry: ./util/check-autogens.sh
+            language: script
+            pass_filenames: false

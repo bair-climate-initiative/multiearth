@@ -11,7 +11,7 @@ from metaearth.config import ConfigSchema
 
 
 def _get_args() -> Tuple[argparse.Namespace, List[str]]:
-    """Returns the parsed command line arguments."""
+    """Return the parsed command line arguments."""
     parser = argparse.ArgumentParser(
         description="Download any data from any provider with one config"
     )

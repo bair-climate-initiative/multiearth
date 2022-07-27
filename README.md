@@ -5,7 +5,7 @@
 
 ---
 
-**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: things will change quickly, with little/no warning. 
+**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: things will change quickly, with little/no warning. The current MetaEarth explainer image above is aspirational: we're actively working on adding more data providers.
 
 ---
 
@@ -69,15 +69,10 @@ collections:
 ```
 
 
-**Finding the collection id**: This depends on the individual provider (in the future, see [Provider Configurations](#provider-configurations) below), but for MPC, the following is a good starting point:
-
-1. Go to the [MPC Data Catalog](https://planetarycomputer.microsoft.com/catalog)
-1. Find/click-on the desired collection
-1. In the Collection Overview Page, click on the "Example Notebook" tab
-1. The example notebook will contain an example of accessing the collection using the collection id.
+**Finding the collection id**: This depends on the individual provider (see [Provider Configurations](#provider-configurations) below).
 
 **Finding the assets**:
-This depends on the individual provider (see [Provider Configurations](in the future, see #provider-configurations) below), but for MPC, the following seems to be a pretty solid method:
+This depends on the individual provider (see [Provider Configurations](in the future, see #provider-configurations) below), but the following seems to be a pretty solid method:
 
 1. Create a config with your desired collection id, set the `assets` option to `["all"]` like this (and setting `max_items` to 1 to speed things up):
 ```yaml
@@ -195,7 +190,7 @@ print(f"Successfully extracted {len(successfully_extracted_assets)} assets. {len
 ## Provider Configurations
 ---
 
-**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: only Microsoft Planetary Computer is supported at the moment. Let us know if you need other providers and we can prioritize adding them.
+**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: there's only a few providers and meta-providers supported at the moment. Let us know if you need other providers and we can prioritize adding them.
 
 ---
 
@@ -208,6 +203,41 @@ Make sure to run the following and enter your api key (this helps increase the a
 ```
 planetarycomputer configure 
 ```
+
+**Finding the collection id**: 
+1. Go to the [MPC Data Catalog](https://planetarycomputer.microsoft.com/catalog)
+1. Find/click-on the desired collection
+1. In the Collection Overview Page, click on the "Example Notebook" tab
+1. The example notebook will contain an example of accessing the collection using the collection id.
+
+
+### NASA EarthData (provider key: EDA)
+NASA EarthData provides access to a diverse range of providers (around 60!), where each provider has different data sources.
+
+**Access**
+1. For NASA EarthData, you need to create an account at: https://urs.earthdata.nasa.gov/
+1. Add a `~/.netrc` file (if it doesn't exist) and then append the following contents:
+```
+machine urs.earthdata.nasa.gov
+    login <username>
+    password <password>
+```
+
+EarthData is a provider of providers, so you must include a `provider_id` in your `kwargs` argument to the provider, like the following example that accesses ASO data from NSIDC from EarthData ([config/nsidc.yaml](config/nsidc.yaml)):
+```
+collections: 
+  ASO_50M_SD:
+    assets:
+      - data
+  provider: 
+    name: EARTHDATA
+    kwargs:
+      provider_id: NSIDC_ECS
+```
+
+**Finding the Provider ID**: Consult [metaearth/provider/earthdata_providers.py](provider/earthdata_providers.py) for a list of providers and their provider ids.
+
+**Finding the collection id**: TODO (this depends on the provider and we need to figure out a general approach)
 
 ## Contributing and Development
 The general flow for development looks like this:

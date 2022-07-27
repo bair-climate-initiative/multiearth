@@ -88,7 +88,7 @@ def _create_download_workers_and_queues(
 def extract_assets(
     cfg: ConfigSchema,
 ) -> Tuple[ExtractAssetCollection, ExtractAssetCollection]:
-    """Runs the full MetaEarth asset extraction process.
+    """Run the full MetaEarth asset extraction process.
 
     This is intentionally a very long function for now.
     As this library takes shape, it will be broken up into smaller functions.
@@ -203,7 +203,7 @@ def extract_assets(
 
     if len(asts_with_unknown_filesize) > 0:
         logger.info(
-            f"{len(asts_with_unknown_filesize):,} assets did not specify file size,"
+            f"{len(asts_with_unknown_filesize):,} assets did not specify file size, "
             + "will query size directly with http get request (this may take a few moments)"
         )
         thread_map(
@@ -250,12 +250,12 @@ def extract_assets(
                     os.remove(ast.outfile)
                     removed_ct += 1
                     skip = False
-            else:
-                logger.info(
-                    "The following file is the wrong size, "
-                    + "but cfg.system.remove_existing_if_wrong_size"
-                    + f"is not set to true, so will not remove: {ast.outfile}"
-                )
+                else:
+                    logger.info(
+                        "The following file is the wrong size, "
+                        + "but cfg.system.remove_existing_if_wrong_size"
+                        + f"is not set to true, so will not remove: {ast.outfile}"
+                    )
 
             if skip:
                 logger.debug(f"Skipping {ast.outfile}, exists")
