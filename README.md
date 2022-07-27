@@ -235,7 +235,7 @@ collections:
       provider_id: NSIDC_ECS
 ```
 
-**Finding the Provider ID**: Consult [metaearth/provider/earthdata_providers.py](provider/earthdata_providers.py) for a list of providers and their provider ids.
+**Finding the Provider ID**: Consult [earthdata_providers.py](metaearth/provider/earthdata_providers.py) for a list of providers and their provider ids.
 
 **Finding the collection id**: TODO (this depends on the provider and we need to figure out a general approach)
 
