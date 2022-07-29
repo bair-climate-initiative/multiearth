@@ -1,7 +1,7 @@
 default_collection:
   outdir: data/
-  datetime: 2013-01-01/2021-04-30
-  aoi_file: config/aoi/demo.json
+  datetime: 2003-01-01/2022-04-30
+  aoi_file: config/aoi/conus-expanded.json
   provider: 
     name: EARTHDATA
     kwargs:
@@ -11,3 +11,9 @@ collections:
   ASO_50M_SD:
     assets:
       - data
+  ASO_50M_SWE:
+    assets:
+      - data
+  # ASO_3M_SD:
+  #   assets:
+  #     - data

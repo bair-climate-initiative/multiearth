@@ -211,7 +211,7 @@ planetarycomputer configure
 1. The example notebook will contain an example of accessing the collection using the collection id.
 
 
-### NASA EarthData (provider key: EDA)
+### NASA EarthData (provider key: EARTHDATA)
 NASA EarthData provides access to a diverse range of providers (around 60!), where each provider has different data sources.
 
 **Access**
