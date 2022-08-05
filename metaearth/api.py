@@ -297,7 +297,7 @@ def extract_assets(
 
             # TODO figure out how to do this without relying on internals
             if job_q._unfinished_tasks._semlock._is_zero():  # type: ignore
-                pbar.update(completed_ast.filesize_mb)
+                pbar.update(download_asset_size)  # hack to update progress bar to 100%
                 break
             sleep(1)
 

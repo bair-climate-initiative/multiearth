@@ -10,10 +10,10 @@ default_collection:
 collections: 
   ASO_50M_SD:
     assets:
-      - data
+      - all
   ASO_50M_SWE:
     assets:
-      - data
-  # ASO_3M_SD:
-  #   assets:
-  #     - data
+      - all
+
+system:
+  query_asset_sizes: False
