@@ -89,16 +89,21 @@ class ExtractAssetCollection:
 
     def total_size(self) -> int:
         """Return the total size (in MB) of all assets in the collection."""
-        return sum(asset.filesize_mb for asset in self)
+        return sum(asset.filesize_mb for asset in self if asset.filesize_mb > 0)
 
     def summary(self) -> None:
         """Print a summary of the collection."""
         assets_types: Dict[str, str] = {}
         for ast in self:
-            assets_types[ast.asset_name] = ast.asset.description
+            desc = ""
+            if ast.asset.title:
+                desc += ast.asset.title
+            if ast.asset.description:
+                desc += f" ({ast.asset.description})"
+            assets_types[ast.asset_name] = desc
             logger.debug(f"\n{ast.id} ({ast.dtype}): {ast.filesize_mb} MB")
         ast_type_str = "\n" + "\n".join(
-            [f'key={k}; desc="{v}"' for k, v in assets_types.items()]
+            [f'key={k}; description="{v}"' for k, v in assets_types.items()]
         )
         logger.info(f"Asset types: {ast_type_str}")
         logger.info(f"Total asset size: {self.total_size():,} MB")

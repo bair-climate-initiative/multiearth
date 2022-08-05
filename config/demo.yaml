@@ -78,6 +78,10 @@ system:
   # of the asset on the remote server and re-extract
   remove_existing_if_wrong_size: True
 
+  # If assets are missing file sizes, query using HTTP request
+  # (this can be slow for large collections)
+  query_asset_sizes: True
+
   # don't actually download, just print out what would be downloaded
   dry_run: False
   

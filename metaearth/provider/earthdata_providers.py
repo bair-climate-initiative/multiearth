@@ -29,6 +29,7 @@ EARTHDATA_PROVIDERS = {
     "LANCEMODIS": "https://cmr.earthdata.nasa.gov/stac/LANCEMODIS",
     "LARC": "https://cmr.earthdata.nasa.gov/stac/LARC",
     "LARC_ASDC": "https://cmr.earthdata.nasa.gov/stac/LARC_ASDC",
+    "LARC_CLOUD": "https://cmr.earthdata.nasa.gov/stac/LARC_CLOUD",
     "LM_FIRMS": "https://cmr.earthdata.nasa.gov/stac/LM_FIRMS",
     "LPCLOUD": "https://cmr.earthdata.nasa.gov/stac/LPCLOUD",
     "LPCUMULUS": "https://cmr.earthdata.nasa.gov/stac/LPCUMULUS",

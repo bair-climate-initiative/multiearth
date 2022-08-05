@@ -18,6 +18,7 @@ class SystemSchema:
     max_concurrent_extractions: int = 10
     max_download_attempts: int = 3
     remove_existing_if_wrong_size: bool = False
+    query_asset_sizes: bool = True
 
 
 @dataclass

@@ -1,0 +1,17 @@
+default_collection:
+  outdir: data/
+  # datetime: 2013-04-02/2019-07-17
+  datetime: 2013-11-01/2014-05-01
+  aoi_file: config/aoi/aso-2013-2019-regions.json
+  provider: 
+    name: MPC
+
+collections: 
+  modis-10A1-061:
+    assets:
+      - NDSI_Snow_Cover
+      - metadata
+
+# system:
+#   dry_run: True
+#   query_asset_sizes: True

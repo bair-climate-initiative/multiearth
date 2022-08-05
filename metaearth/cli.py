@@ -24,6 +24,7 @@ if __name__ == "__main__":
     schema = OmegaConf.structured(ConfigSchema)
     incfg = OmegaConf.load(args.config)
     cfg = OmegaConf.merge(schema, incfg)
+
     if len(extra_args) > 0:
         cli_cfg = OmegaConf.from_cli(extra_args)
         try:

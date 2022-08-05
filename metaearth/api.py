@@ -202,15 +202,17 @@ def extract_assets(
             asts_with_unknown_filesize.append(ast)
 
     if len(asts_with_unknown_filesize) > 0:
-        logger.info(
-            f"{len(asts_with_unknown_filesize):,} assets did not specify file size, "
-            + "will query size directly with http get request (this may take a few moments)"
-        )
-        thread_map(
-            lambda ast: ast.query_asset_size_from_download_url(),
-            asts_with_unknown_filesize,
-            max_workers=cfg.system.max_concurrent_extractions,
-        )
+        if cfg.system.query_asset_sizes:
+            logger.info(
+                f"{len(asts_with_unknown_filesize):,} assets did not specify file size, "
+                + "will query size directly with http get request (this may take a few moments)\n"
+                + "system.query_asset_sizes=False can be used to disable this behavior"
+            )
+            thread_map(
+                lambda ast: ast.query_asset_size_from_download_url(),
+                asts_with_unknown_filesize,
+                max_workers=cfg.system.max_concurrent_extractions,
+            )
 
     # print a nice summary (depends on log level how detailed it is)
     logger.info(
@@ -295,6 +297,7 @@ def extract_assets(
 
             # TODO figure out how to do this without relying on internals
             if job_q._unfinished_tasks._semlock._is_zero():  # type: ignore
+                pbar.update(completed_ast.filesize_mb)
                 break
             sleep(1)
 
