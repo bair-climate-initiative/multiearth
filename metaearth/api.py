@@ -242,9 +242,9 @@ def extract_assets(
         if os.path.exists(ast.outfile):
             # check if the size of the file is as expected, else remove
             skip = True
-            if cfg.system.remove_existing_if_wrong_size:
-                mb_size = os.path.getsize(ast.outfile) // 1e6
-                if ast.filesize_mb > 0 and max(1, abs(mb_size - ast.filesize_mb)) > 1:
+            mb_size = os.path.getsize(ast.outfile) // 1e6
+            if ast.filesize_mb > 0 and max(1, abs(mb_size - ast.filesize_mb)) > 1:
+                if cfg.system.remove_existing_if_wrong_size:
                     logger.info(
                         f"Removing {ast.outfile} because it is {mb_size:,}MB"
                         + f"instead of {ast.filesize_mb:,}MB"
@@ -256,7 +256,7 @@ def extract_assets(
                     logger.info(
                         "The following file is the wrong size, "
                         + "but cfg.system.remove_existing_if_wrong_size"
-                        + f"is not set to true, so will not remove: {ast.outfile}"
+                        + f" is not set to true, so will not remove: {ast.outfile}"
                     )
 
             if skip:
