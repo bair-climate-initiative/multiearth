@@ -15,12 +15,12 @@ Install MetaEarth as a library and download about 18MB of [Copernicus DEM](https
 
 ```bash
 # OPTIONAL: set up a conda environment (use at least python 3.7)
-conda create -n metaearth python=3.8
+conda create -n metaearth python=3.8 geopandas
 conda activate metaearth
 
 git clone git@github.com:bair-climate-initiative/metaearth.git
 cd metaearth
-pip install .
+pip install -e . 
 
 # Take a look at the download using a dry run (you could also set dry_run in the config file):
 python metaearth/cli.py --config config/demo.yaml system.dry_run=True
