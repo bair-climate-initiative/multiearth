@@ -14,3 +14,29 @@ collections:
   ASO_50M_SWE:
     assets:
       - all
+  SNEX20_SWESARR_TB:
+    assets:
+      - all
+  
+system:
+  # how many concurrent procs to use for 
+  # extracting the assets
+  # set to -1 to use all available procs
+  max_concurrent_extractions: 10
+
+  # number of attempt downloading an asset if error/issues encountered
+  max_download_attempts: 3
+
+  # DEBUG, INFO, WARN, ERROR, FATAL
+  log_level: INFO
+  
+  # Write the logs here
+  log_outdir: ./logs
+
+  # Remove existing files if their filesize does not match the size 
+  # of the asset on the remote server and re-extract
+  remove_existing_if_wrong_size: True
+
+  # If assets are missing file sizes, query using HTTP request
+  # (this can be slow for large collections)
+  query_asset_sizes: False
