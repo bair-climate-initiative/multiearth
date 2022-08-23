@@ -85,6 +85,18 @@ def _create_download_workers_and_queues(
     return job_q, finished_q, fail_q
 
 
+def _query_asset_size(ast: ExtractAsset) -> None:
+    """Query the size of the asset from the download url using an http request."""
+    try:
+        ast.query_asset_size_from_download_url()
+    except Exception as ex:
+        logger.error(
+            "\n"
+            + f"Unable to query asset size from {ast._last_download_url}: {ex}"
+            + "\n"
+        )
+
+
 def extract_assets(
     cfg: ConfigSchema,
 ) -> Tuple[ExtractAssetCollection, ExtractAssetCollection]:
@@ -209,7 +221,7 @@ def extract_assets(
                 + "system.query_asset_sizes=False can be used to disable this behavior"
             )
             thread_map(
-                lambda ast: ast.query_asset_size_from_download_url(),
+                _query_asset_size,
                 asts_with_unknown_filesize,
                 max_workers=cfg.system.max_concurrent_extractions,
             )
