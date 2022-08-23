@@ -1,0 +1,16 @@
+default_collection:
+  outdir: data
+  # datetime: 2015-06-27/2022-08-22  # full ASO range
+  datetime: 2022-01-01/2022-01-02
+  aoi_file: config/aoi/conus-expanded.json
+  provider:
+    name: MPC
+
+collections:
+  sentinel-2-l2a:
+    assets:
+      - all
+
+system:
+  dry_run: True
+  query_asset_sizes: True
