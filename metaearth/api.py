@@ -85,6 +85,18 @@ def _create_download_workers_and_queues(
     return job_q, finished_q, fail_q
 
 
+def _query_asset_size(ast: ExtractAsset) -> None:
+    """Query the size of the asset from the download url using an http request."""
+    try:
+        ast.query_asset_size_from_download_url()
+    except Exception as ex:
+        logger.error(
+            "\n"
+            + f"Unable to query asset size from {ast._last_download_url}: {ex}"
+            + "\n"
+        )
+
+
 def extract_assets(
     cfg: ConfigSchema,
 ) -> Tuple[ExtractAssetCollection, ExtractAssetCollection]:
@@ -209,10 +221,15 @@ def extract_assets(
                 + "system.query_asset_sizes=False can be used to disable this behavior"
             )
             thread_map(
-                lambda ast: ast.query_asset_size_from_download_url(),
+                _query_asset_size,
                 asts_with_unknown_filesize,
                 max_workers=cfg.system.max_concurrent_extractions,
             )
+
+    assets_with_unknown_filesize = sum(
+        1 for ast in extract_assets if ast.filesize_unknown()
+    )
+    logger.info(f"{assets_with_unknown_filesize} assets have unknown file size")
 
     # print a nice summary (depends on log level how detailed it is)
     logger.info(
@@ -284,12 +301,22 @@ def extract_assets(
 
     # show progress bar
     completed_assets = ExtractAssetCollection()
-    with tqdm(total=download_asset_size, desc="MB downloaded") as pbar:
+    if assets_with_unknown_filesize > 0:
+        tqdm_target = added_ct
+        tqdm_target_desc = "Assets"
+    else:
+        tqdm_target = download_asset_size
+        tqdm_target_desc = "MB"
+
+    with tqdm(total=tqdm_target, desc=tqdm_target_desc) as pbar:
         while True:
             try:
                 completed_ast = finished_q.get(timeout=5)
                 completed_assets.add_asset(completed_ast)
-                pbar.update(completed_ast.filesize_mb)
+                if assets_with_unknown_filesize > 0:
+                    pbar.update(1)
+                else:
+                    pbar.update(completed_ast.filesize_mb)
             except Empty:
                 # it's possible all extractions error'd out, and the queue would never return,
                 # so check periodically (after timeout)
