@@ -1,0 +1,25 @@
+default_collection:
+  outdir: data/demo-extraction
+  datetime: 2017-04-01/2021-04-23
+  aoi_file: config/aoi/demo_landcover.json
+  max_items: 1
+  provider: 
+    name: RADIANT
+    kwargs:
+      api_key: ''
+
+collections: 
+  ref_landcovernet_na_v1_source_sentinel_2:
+    outdir: data/land_cover_north_america
+    assets:
+      - all
+
+system:
+  max_concurrent_extractions: 32
+  max_download_attempts: 3
+  log_level: INFO
+  log_outdir: ./logs
+  remove_existing_if_wrong_size: True
+  query_asset_sizes: False
+  dry_run: False
+  

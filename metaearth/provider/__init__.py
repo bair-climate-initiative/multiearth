@@ -1,6 +1,7 @@
 """Exposes access to providers, such as Microsoft Planetary Computer."""
 from enum import Enum
 from typing import Any
+from metaearth.provider.radiant_ml import RadiantMLHub
 
 from metaearth.util.misc import dict_hash
 
@@ -22,6 +23,7 @@ class ProviderKey(Enum):
 
     MPC = MicrosoftPlanetaryComputer
     EARTHDATA = EarthDataProvider
+    RADIANT = RadiantMLHub
 
 
 # keep track of providers instantiated with given args
@@ -39,6 +41,8 @@ def get_provider(provider_name: ProviderKey, **kwargs: Any) -> BaseProvider:
             provider = MicrosoftPlanetaryComputer(**kwargs)
         elif provider_name == ProviderKey.EARTHDATA:
             provider = EarthDataProvider(**kwargs)
+        elif provider_name == ProviderKey.RADIANT:
+            provider = RadiantMLHub(**kwargs)
         else:
             raise ValueError(f"Unknown provider {provider_name}")
 

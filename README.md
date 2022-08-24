@@ -239,6 +239,13 @@ collections:
 
 **Finding the collection id**: TODO (this depends on the provider and we need to figure out a general approach)
 
+### Radiant MLHub (provider key: RADIANT)
+
+To query and access the data, you need to obtain an api key from [Radiant MLHub](https://mlhub.earth/). There are two ways to setup your api key with MetaEarth.
+
+1. You can set an environment variable `MLHUB_API_KEY` as instructed by the [official documentation](https://radiant-mlhub.readthedocs.io/en/latest/authentication.html)
+2. You can hardcode it as a kwarg `api_key` in the config under provider section
+
 ## Contributing and Development
 The general flow for development looks like this:
 

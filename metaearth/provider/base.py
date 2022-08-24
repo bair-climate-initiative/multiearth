@@ -5,6 +5,7 @@ from typing import Iterator, Union
 
 import pystac
 import shapely
+import shapely.geometry
 from pystac_client import Client
 
 
