@@ -1,8 +1,8 @@
 """Exposes access to providers, such as Microsoft Planetary Computer."""
 from enum import Enum
 from typing import Any
-from metaearth.provider.radiant_ml import RadiantMLHub
 
+from metaearth.provider.radiant_ml import RadiantMLHub
 from metaearth.util.misc import dict_hash
 
 from .base import BaseProvider
