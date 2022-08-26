@@ -6,7 +6,7 @@ from datetime import date
 from multiprocessing import JoinableQueue, Process, Queue
 from queue import Empty
 from time import sleep
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 import geopandas as gpd
 from loguru import logger
@@ -113,9 +113,12 @@ def extract_assets(
             1: Assets that failed to extract (empty if all succeeded)
     """
     # string to identify the run
-    run_str = (
-        f"{'-'.join(sorted(cfg.collections.keys()))}_{date.today():%H:%M-%m-%d-%Y}"
-    )
+    collection_names = [
+        cltn_id
+        for pvdr in cfg.providers.values()
+        for cltn_id in pvdr.collections.keys()
+    ]
+    run_str = f"{'-'.join(sorted(collection_names))}_{date.today():%H:%M-%m-%d-%Y}"
 
     # create output log dir if not exists
     if not os.path.exists(cfg.system.log_outdir):
@@ -125,7 +128,7 @@ def extract_assets(
     logger.remove()
     logger.add(
         sys.stderr,
-        format="{time:HH:mm:ss} {level} {message}",
+        format="<blue>{time:HH:mm:ss}</blue> <yellow>{level}</yellow> - <bold>{message}</bold>",
         level=cfg.system.log_level,
         colorize=True,
     )
@@ -141,6 +144,13 @@ def extract_assets(
     with open(os.path.join(cfg.system.log_outdir, f"{run_str}_cfg.yaml"), "w") as f:
         f.write(str(yaml_cfg))
 
+    # DIFFERENT FUNCTIONS DEPENDING ON DATA SOURCE TYPE
+    # if radiant...
+    # if google earth engine...
+    #
+    # else: # assume STAC
+    #   extract_assets_stac
+
     # Process:
     # 1. For each collection, extract STAC item collection for given region
     # 2. In parallel, extract data from STAC item collection and write to
@@ -151,59 +161,64 @@ def extract_assets(
     logger.debug("Preparing collections")
     aoi_cache = {}
     extract_assets = ExtractAssetCollection()
-    for collection_name in cfg.collections.keys():
-        logger.debug(f"Preparing collection {collection_name}")
-
+    for pvdr_id, pvdr_cfg in cfg.providers.items():
         # get the provider
-        pvdr_dict: Dict[str, Any] = get_collection_val_or_default(
-            cfg, collection_name, "provider"
-        )
-        pvdr: BaseProvider = get_provider(pvdr_dict["name"], **pvdr_dict["kwargs"])
+        pvdr: BaseProvider = get_provider(pvdr_id, **pvdr_cfg.kwargs)
+        for collection_name in pvdr_cfg.collections.keys():
+            logger.debug(f"Preparing collection {pvdr_id}: {collection_name}")
 
-        # get all other relevant config values
-        datetime_range_str: str = get_collection_val_or_default(
-            cfg, collection_name, "datetime"
-        )
-        aoi_file: str = get_collection_val_or_default(cfg, collection_name, "aoi_file")
-        assets: List[str] = get_collection_val_or_default(
-            cfg, collection_name, "assets"
-        )
-        max_items: int = get_collection_val_or_default(
-            cfg, collection_name, "max_items"
-        )
+            # get all other relevant config values
+            datetime_range_str: str = get_collection_val_or_default(
+                cfg, pvdr_id, collection_name, "datetime"
+            )
+            aoi_file: str = get_collection_val_or_default(
+                cfg, pvdr_id, collection_name, "aoi_file"
+            )
+            assets: List[str] = get_collection_val_or_default(
+                cfg, pvdr_id, collection_name, "assets"
+            )
+            max_items: int = get_collection_val_or_default(
+                cfg, pvdr_id, collection_name, "max_items"
+            )
 
-        # make sure output dir exists for later writing
-        output_dir = get_collection_val_or_default(cfg, collection_name, "outdir")
-        os.makedirs(output_dir, exist_ok=True)
+            # make sure output dir exists for later writing
+            output_dir = get_collection_val_or_default(
+                cfg, pvdr_id, collection_name, "outdir"
+            )
+            os.makedirs(output_dir, exist_ok=True)
 
-        logger.info(
-            f"Extraction details for collection {collection_name}:"
-            + f"\n\t\tprovider=<{pvdr}> \n\t\ttimerange=<{datetime_range_str}>,"
-            + f"\n\t\taoi_file=<{aoi_file}>, \n\t\toutput_dir=<{output_dir}>,"
-            + f"\n\t\tassets=<{assets}>"
-        )
+            logger.info(
+                f"Extraction details for collection {collection_name}:"
+                + f"\n\t\tprovider=<{pvdr}> \n\t\ttimerange=<{datetime_range_str}>,"
+                + f"\n\t\taoi_file=<{aoi_file}>, \n\t\toutput_dir=<{output_dir}>,"
+                + f"\n\t\tassets=<{assets}>"
+            )
 
-        logger.debug(f"loading area of interest file: {aoi_file}")
-        if aoi_file not in aoi_cache:
-            aoi_cache[aoi_file] = gpd.read_file(aoi_file).unary_union
-        region = aoi_cache[aoi_file]
+            logger.debug(f"loading area of interest file: {aoi_file}")
+            if aoi_file not in aoi_cache:
+                aoi_cache[aoi_file] = gpd.read_file(aoi_file).unary_union
+            region = aoi_cache[aoi_file]
 
-        # find the assets to be extracted
-        itm_set = list(
-            pvdr.region_to_items(region, datetime_range_str, collection_name, max_items)
-        )
+            # find the assets to be extracted
+            itm_set = list(
+                pvdr.region_to_items(
+                    region, datetime_range_str, collection_name, max_items
+                )
+            )
 
-        # create a set of extraction tasks for each item in each provider
-        # below, before attempting extraction, we check if each item is already/currently
-        # extracting from another provider and skip if so
-        logger.info(
-            f"\n{pvdr} returned {len(itm_set)} items for {collection_name} "
-            + f"for datetime {datetime_range_str}\n"
-        )
+            # create a set of extraction tasks for each item in each provider
+            # below, before attempting extraction, we check if each item is already/currently
+            # extracting from another provider and skip if so
+            logger.info(
+                f"\n{pvdr} returned {len(itm_set)} items for {collection_name} "
+                + f"for datetime {datetime_range_str}\n"
+            )
 
-        logger.debug(f"Adding item assets from {pvdr} to extraction tasks")
-        for itm in itm_set:
-            extract_assets += extract_assets_from_item(itm, pvdr, assets, output_dir)
+            logger.debug(f"Adding item assets from {pvdr} to extraction tasks")
+            for itm in itm_set:
+                extract_assets += extract_assets_from_item(
+                    itm, pvdr, assets, output_dir
+                )
 
     # we may need to query the size of the assets, which we use for logging
     # and as an imperfect way to check the validity of the downloaded data
