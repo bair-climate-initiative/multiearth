@@ -125,7 +125,7 @@ def extract_assets(
     logger.remove()
     logger.add(
         sys.stderr,
-        format="{time:HH:mm:ss} {level} {message}",
+        format="<blue>{time:HH:mm:ss}</blue> <yellow>{level}</yellow> - <bold>{message}</bold>",
         level=cfg.system.log_level,
         colorize=True,
     )
