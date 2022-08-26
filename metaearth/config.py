@@ -22,18 +22,9 @@ class SystemSchema:
 
 
 @dataclass
-class ProviderSchema:
-    """Provider config schema for MetaEarth config."""
-
-    name: ProviderKey
-    kwargs: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
 class CollectionSchema:
     """Collection config schema for MetaEarth config."""
 
-    provider: Optional[ProviderSchema] = None
     assets: Optional[List[str]] = None
     outdir: Optional[str] = None
     datetime: Optional[str] = None
@@ -42,19 +33,28 @@ class CollectionSchema:
 
 
 @dataclass
+class ProviderSchema:
+    """Provider config schema for MetaEarth config."""
+
+    name: ProviderKey
+    kwargs: Dict[str, Any] = field(default_factory=dict)
+    collections: Dict[str, CollectionSchema] = field(default_factory=dict)
+
+
+@dataclass
 class ConfigSchema:
     """Top-level config schema for MetaEarth config."""
 
     default_collection: CollectionSchema = field(default_factory=CollectionSchema)
-    collections: Dict[str, CollectionSchema] = field(default_factory=dict)
+    providers: Dict[ProviderKey, ProviderSchema] = field(default_factory=dict)
     system: SystemSchema = field(default_factory=SystemSchema)
 
 
 def get_collection_val_or_default(
-    cfg: ConfigSchema, collection_name: str, key: str
+    cfg: ConfigSchema, pvdr_id: str, collection_name: str, key: str
 ) -> Any:
     """Get a value from a collection or the default collection if it doesn't exist."""
-    coll = typing.cast(DictConfig, cfg.collections[collection_name])
+    coll = typing.cast(DictConfig, cfg.providers[pvdr_id].collections[collection_name])
     def_coll = typing.cast(DictConfig, cfg.default_collection)
     if coll[key] is not None:
         return coll[key]
