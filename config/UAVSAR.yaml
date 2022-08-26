@@ -9,16 +9,10 @@ default_collection:
       provider_id: ASF
 
 collections: 
-  UAVSAR_INSAR_AMP:
+  UAVSAR_INSAR_INT_GRD:
     assets:
       - all
-  UAVSAR_INSAR_INT:
-    assets:
-      - all
-  UAVSAR_INSAR_KMZ:
-    assets:
-      - all
-  UAVSAR_INSAR_DEM:
+  UAVSAR_INSAR_AMP_GRD:
     assets:
       - all
   

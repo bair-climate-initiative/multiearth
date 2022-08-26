@@ -1,6 +1,6 @@
 default_collection:
   outdir: data/
-  datetime: 2003-01-01/2022-04-30
+  datetime: 2020-02-10/2020-02-12
   aoi_file: config/aoi/conus-expanded.json
   provider: 
     name: EARTHDATA
@@ -8,12 +8,12 @@ default_collection:
       provider_id: NSIDC_ECS
 
 collections: 
-  ASO_50M_SD:
-    assets:
-      - all
-  ASO_50M_SWE:
-    assets:
-      - all
+  # ASO_50M_SD:
+  #   assets:
+  #     - all
+  # ASO_50M_SWE:
+  #   assets:
+  #     - all
   SNEX20_SWESARR_TB:
     assets:
       - all
@@ -22,7 +22,7 @@ system:
   # how many concurrent procs to use for 
   # extracting the assets
   # set to -1 to use all available procs
-  max_concurrent_extractions: 10
+  max_concurrent_extractions: 2
 
   # number of attempt downloading an asset if error/issues encountered
   max_download_attempts: 3
