@@ -1,0 +1,22 @@
+default_collection:
+  outdir: data/
+  datetime: 2003-01-01/2022-04-30
+  aoi_file: config/aoi/conus-expanded.json
+  provider: 
+    name: EARTHDATA
+    kwargs:
+      provider_id: POCLOUD
+
+collections: 
+  # GRACE-FO Level-1B Release version 4.0 from JPL in ASCII
+  GRACEFO_L1B_ASCII_GRAV_JPL_RL04:
+    assets:
+      - all
+  # GRACE-FO Level-2 Monthly Geopotential Spherical Harmonics CSR Release 6.0 (RL06)
+  GRACEFO_L2_CSR_MONTHLY_0060:
+    assets:
+      - all
+  # GRACE-FO Level-1A Release version 4.0 from JPL in ASCII
+  GRACEFO_L1A_ASCII_GRAV_JPL_RL04:
+    assets:
+      - all
