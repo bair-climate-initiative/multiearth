@@ -1,8 +1,13 @@
+import json
 import os
 
 import dateutil.parser
+from pystac_client.exceptions import APIError
+from radiant_mlhub import Dataset
 
 from metaearth.provider.base import STACProvider
+
+from ..util.datetime import datetime_str_to_value
 
 # Overwrite isoparse to handle the date format of LandCover Dataset
 # TODO: Find a better way to handle this
@@ -40,6 +45,7 @@ class RadiantMLHub(STACProvider):
             client_url = self._default_client_url
         if api_key == "":
             api_key = os.environ.get("MLHUB_API_KEY")
+        self.api_key = api_key
         self._client = Client.open(
             client_url, ignore_conformance=True, parameters={"key": api_key}
         )
@@ -53,5 +59,30 @@ class RadiantMLHub(STACProvider):
         try:
             self._client._stac_io.read_text("https://api.radiant.earth/mlhub/v1/search")
             return True
-        except Exception:
+        except APIError:
             return False
+
+    def download_dataset(
+        self,
+        dataset_id: str,
+        output_dir: str,
+        datetime_range_str: str,
+        aoi_file: str,
+        catalog_only=False,
+    ):
+        """Download a dataset to assigned output_dir"""
+        all_datasets = [x.id for x in Dataset.list()]
+        assert dataset_id in all_datasets, f"Dataset {dataset_id} does not exist"
+        dataset = Dataset.fetch_by_id(dataset_id, api_key=self.api_key)
+        with open(aoi_file) as f:
+            aoi_data = json.loads(f.read())
+            aoi = aoi_data["features"]
+            assert len(aoi) == 1, "Radiant MLHub only supports one polygon filter"
+            aoi = aoi[0]
+        dataset.download(
+            catalog_only=catalog_only,
+            intersects=aoi,
+            datetime=datetime_str_to_value(datetime_range_str),
+            output_dir=output_dir,
+            api_key=self.api_key,
+        )

@@ -3,16 +3,18 @@ default_collection:
   datetime: 2017-04-01/2021-04-23
   aoi_file: config/aoi/demo_landcover.json
   max_items: 1
-  provider: 
-    name: RADIANT
-    kwargs:
-      api_key: ''
-
-collections: 
-  ref_landcovernet_na_v1_source_sentinel_2:
-    outdir: data/land_cover_north_america
-    assets:
-      - all
+  # provider: 
+  #   name: RADIANT
+  #   kwargs:
+  #     api_key: ''
+      
+providers:
+  RADIANT:
+    collections: 
+      ref_landcovernet_eu_v1:
+        outdir: data/land_cover_north_america
+        assets:
+          - all
 
 system:
   max_concurrent_extractions: 32
