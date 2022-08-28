@@ -1,0 +1,3 @@
+xarray>=0.20.1
+netCDF4>=1.6.0
+matplotlib
