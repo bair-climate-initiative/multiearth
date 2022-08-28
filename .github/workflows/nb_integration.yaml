@@ -1,16 +1,14 @@
-name: Python package
+name: Notebook demos/integration tests
 
 on:
   push:
     branches:
     - main
     - release**
-    - test-nbs-test-workflow
   pull_request:
     branches:
     - main
     - release**
-    - test-nbs-test-workflow
 
 jobs:
   build:
