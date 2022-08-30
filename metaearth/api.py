@@ -17,6 +17,7 @@ from tqdm.contrib.concurrent import thread_map
 from metaearth.config import ConfigSchema, get_collection_val_or_default
 from metaearth.provider import get_provider
 from metaearth.provider.base import BaseProvider
+from metaearth.provider.radiant_ml import RadiantMLHub
 from metaearth.util.stac import (
     ExtractAsset,
     ExtractAssetCollection,
@@ -198,27 +199,38 @@ def extract_assets(
             if aoi_file not in aoi_cache:
                 aoi_cache[aoi_file] = gpd.read_file(aoi_file).unary_union
             region = aoi_cache[aoi_file]
-
             # find the assets to be extracted
-            itm_set = list(
-                pvdr.region_to_items(
-                    region, datetime_range_str, collection_name, max_items
-                )
-            )
 
-            # create a set of extraction tasks for each item in each provider
-            # below, before attempting extraction, we check if each item is already/currently
-            # extracting from another provider and skip if so
-            logger.info(
-                f"\n{pvdr} returned {len(itm_set)} items for {collection_name} "
-                + f"for datetime {datetime_range_str}\n"
-            )
-
-            logger.debug(f"Adding item assets from {pvdr} to extraction tasks")
-            for itm in itm_set:
-                extract_assets += extract_assets_from_item(
-                    itm, pvdr, assets, output_dir
+            if isinstance(pvdr, RadiantMLHub):
+                logger.info("Using RadiantMLHub Client to download assets")
+                pvdr.download_dataset(
+                    collection_name,
+                    output_dir=output_dir,
+                    datetime_range_str=datetime_range_str,
+                    catalog_only=cfg.system.dry_run,
+                    aoi_file=aoi_file,
                 )
+                itm_set = []
+            else:
+                itm_set = list(
+                    pvdr.region_to_items(
+                        region, datetime_range_str, collection_name, max_items
+                    )
+                )
+
+                # create a set of extraction tasks for each item in each provider
+                # below, before attempting extraction, we check if each item is already/currently
+                # extracting from another provider and skip if so
+                logger.info(
+                    f"\n{pvdr} returned {len(itm_set)} items for {collection_name} "
+                    + f"for datetime {datetime_range_str}\n"
+                )
+
+                logger.debug(f"Adding item assets from {pvdr} to extraction tasks")
+                for itm in itm_set:
+                    extract_assets += extract_assets_from_item(
+                        itm, pvdr, assets, output_dir
+                    )
 
     # we may need to query the size of the assets, which we use for logging
     # and as an imperfect way to check the validity of the downloaded data

@@ -1,4 +1,5 @@
 """Utility functions for working with STAC items."""
+import hashlib
 import os
 from dataclasses import dataclass, field
 from typing import Dict, Iterator, List
@@ -164,6 +165,19 @@ def extract_assets_from_item(
     return extract_assets
 
 
+def sha256_hash(s: str) -> str:
+    """Use SHA256 to hash a string
+
+    Args:
+        s (str): An arbritrary string
+    Returns:
+        str: The hashed string
+    """
+    sha = hashlib.sha256()
+    sha.update(s.encode())
+    return sha.hexdigest()
+
+
 def item_asset_to_outfile(itm: pystac.Item, asset: pystac.Asset, outdir: str) -> str:
     """Take an item and returns the output filename for it.
 
@@ -175,4 +189,6 @@ def item_asset_to_outfile(itm: pystac.Item, asset: pystac.Asset, outdir: str) ->
         str: The output filename
     """
     outname = os.path.basename(urlparse(asset.href).path)
+    if len(outname) > 64:
+        outname = sha256_hash(outname)
     return os.path.join(outdir, itm.collection_id, itm.id, outname)
