@@ -264,7 +264,7 @@ The general flow for development looks like this:
 6. Profit $$$
 
 
-### Linting
+## Linting
 Following [TorchGeo](https://torchgeo.readthedocs.io/en/stable/user/contributing.html#linters) (and literally copying their docs), we use the following linters:
 
 * [black](https://black.readthedocs.io/) for code formatting
@@ -283,6 +283,34 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+
+## Testing
+Data sources and providers have integration tests that are implemented via Jupyter Notebooks. Serving as both an explanatory medium and documentation, notebooks inside the `nbs` folder serve as a great way to verify that
+* Required data is pulled correctly from the specified provider
+* Data is able to be loaded and processed (and therefore not corrupted on download)
+* A visualization is provided for users to know what their data should look like
+
+To run notebook integration tests, follow these steps:
+1. Install required test packages with `pip install -e .[tests]`
+2. Execute pytest with `pytest --nbmake nbs/*`
+
+### Addings New Tests
+When writing a test notebook, please ensure you are meeting the following criteria:
+1. The notebook has a simple but descriptive file name.
+2. Download the smallest amount of data/assets possible to successfully run the test.
+    * Avoid using `assets: all`; use `max_items: 1` instead.
+    * See `nbs/grace-fo-plot.ipynb` for an example.
+
+Your tests may require additional libraries or dependencies to load or plot the data that are not required by the main MetaEarth library. To properly execute these tests, please add your dependencies to the `setup.cfg` file under the `[options.extras_require] -> tests` section.
+
+### Automated Test Runs and Authentication
+Tests are executed automatically via [GitHub Actions](https://github.com/features/actions) when a pull request is opened against the `main` or `release` branches. You are able to verify that your PR passes tests within the PR itself.
+
+If you are adding a new provider to MetaEarth which requires credentials in order to pull data, please work with the project maintainers to add a test username and password to the proper dotfiles and Actions Secrets for test runners to appropriately pull the data.
+
+Adding authentication for your tests will require editing the `.github/workflows/nb_integration.yaml` file. Work with the project maintainers to achieve this.
+
+--------
 
 ## Useful links
 
