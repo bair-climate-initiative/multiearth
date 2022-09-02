@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from omegaconf import DictConfig
 
-from metaearth.provider import ProviderKey
+from .provider import ProviderKey
 
 
 @dataclass
