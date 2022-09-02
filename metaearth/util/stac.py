@@ -8,9 +8,8 @@ import pystac
 import requests
 from loguru import logger
 
-from metaearth.util.misc import stream_download
-
 from ..provider import BaseProvider
+from .misc import stream_download
 
 
 @dataclass

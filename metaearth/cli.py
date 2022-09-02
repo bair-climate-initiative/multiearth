@@ -6,8 +6,8 @@ import omegaconf
 from loguru import logger
 from omegaconf import OmegaConf
 
-from metaearth.api import extract_assets
-from metaearth.config import ConfigSchema
+from .api import extract_assets
+from .config import ConfigSchema
 
 
 def _get_args() -> Tuple[argparse.Namespace, List[str]]:

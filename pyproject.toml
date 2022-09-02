@@ -16,7 +16,7 @@ known_first_party = ["docs", "tests", "metaearth", "train"]
 skip_gitignore = true
 color_output = true
 
-[mypy]
+[tool.mypy]
 ignore_missing_imports = true
 show_error_codes = true
 exclude = "(build|data|dist|docs/src|images|logo|logs|output)/"
