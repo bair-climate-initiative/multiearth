@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from omegaconf import DictConfig
 
-from metaearth.provider import ProviderKey
+from .provider import ProviderKey
 
 
 @dataclass
@@ -51,7 +51,7 @@ class ConfigSchema:
 
 
 def get_collection_val_or_default(
-    cfg: ConfigSchema, pvdr_id: str, collection_name: str, key: str
+    cfg: ConfigSchema, pvdr_id: ProviderKey, collection_name: str, key: str
 ) -> Any:
     """Get a value from a collection or the default collection if it doesn't exist."""
     coll = typing.cast(DictConfig, cfg.providers[pvdr_id].collections[collection_name])

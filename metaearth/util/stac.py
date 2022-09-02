@@ -9,9 +9,8 @@ import pystac
 import requests
 from loguru import logger
 
-from metaearth.util.misc import stream_download
-
 from ..provider import BaseProvider
+from .misc import stream_download
 
 
 @dataclass
@@ -133,7 +132,7 @@ def extract_assets_from_item(
     """
     assets = itm.get_assets()
     if len(itm_assets_to_extract) == 1 and itm_assets_to_extract[0] == "all":
-        itm_assets_to_extract = assets.keys()
+        itm_assets_to_extract = list(assets.keys())
 
     extract_assets = ExtractAssetCollection()
     for asset_name in itm_assets_to_extract:
@@ -166,7 +165,7 @@ def extract_assets_from_item(
 
 
 def sha256_hash(s: str) -> str:
-    """Use SHA256 to hash a string
+    """Use SHA256 to hash a string.
 
     Args:
         s (str): An arbritrary string
@@ -191,4 +190,5 @@ def item_asset_to_outfile(itm: pystac.Item, asset: pystac.Asset, outdir: str) ->
     outname = os.path.basename(urlparse(asset.href).path)
     if len(outname) > 64:
         outname = sha256_hash(outname)
-    return os.path.join(outdir, itm.collection_id, itm.id, outname)
+    coll_id = itm.collection_id if itm.collection_id else "unknown_coll"
+    return os.path.join(outdir, coll_id, itm.id, outname)
