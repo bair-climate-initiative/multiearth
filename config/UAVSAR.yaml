@@ -17,5 +17,5 @@ collections:
       - all
   
 system:
-  dry_run: True
+  dry_run: False
   query_asset_sizes: False
