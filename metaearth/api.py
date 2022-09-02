@@ -14,14 +14,10 @@ from omegaconf import OmegaConf
 from tqdm.asyncio import tqdm
 from tqdm.contrib.concurrent import thread_map
 
-from metaearth.config import ConfigSchema, get_collection_val_or_default
-from metaearth.provider import get_provider
-from metaearth.provider.base import BaseProvider
-from metaearth.util.stac import (
-    ExtractAsset,
-    ExtractAssetCollection,
-    extract_assets_from_item,
-)
+from .config import ConfigSchema, get_collection_val_or_default
+from .provider import get_provider
+from .provider.base import BaseProvider
+from .util.stac import ExtractAsset, ExtractAssetCollection, extract_assets_from_item
 
 
 def _download_worker_task(

@@ -10,21 +10,13 @@ target-version = ["py37", "py38", "py39"]
 color = true
 skip_magic_trailing_comma = true
 
-[tool.coverage.report]
-# Ignore warnings for overloads
-# https://github.com/nedbat/coveragepy/issues/970#issuecomment-612602180
-exclude_lines = [
-    "pragma: no cover",
-    "@overload",
-]
-
 [tool.isort]
 profile = "black"
-known_first_party = ["docs", "tests", "torchgeo", "train"]
+known_first_party = ["docs", "tests", "metaearth", "train"]
 skip_gitignore = true
 color_output = true
 
-[tool.mypy]
+[mypy]
 ignore_missing_imports = true
 show_error_codes = true
 exclude = "(build|data|dist|docs/src|images|logo|logs|output)/"
