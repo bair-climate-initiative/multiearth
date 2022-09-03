@@ -1,11 +1,18 @@
 """Config schema for MetaEarth config."""
 import typing
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from omegaconf import DictConfig
 
-from .provider import ProviderKey
+
+class ProviderKey(Enum):
+    """Helper class for identifying providers."""
+    # import here to avoid circular import
+    MPC = "MicrosoftPlanetaryComputer"
+    EARTHDATA = "EarthDataProvider"
+    RADIANT = "RadiantMLHub"
 
 
 @dataclass
@@ -24,7 +31,7 @@ class SystemSchema:
 @dataclass
 class CollectionSchema:
     """Collection config schema for MetaEarth config."""
-
+    id: Optional[str] = None
     assets: Optional[List[str]] = None
     outdir: Optional[str] = None
     datetime: Optional[str] = None
@@ -35,19 +42,18 @@ class CollectionSchema:
 @dataclass
 class ProviderSchema:
     """Provider config schema for MetaEarth config."""
-
-    name: ProviderKey
+    id: ProviderKey
     kwargs: Dict[str, Any] = field(default_factory=dict)
-    collections: Dict[str, CollectionSchema] = field(default_factory=dict)
+    collections: List[CollectionSchema] = field(default_factory=list)
 
 
 @dataclass
 class ConfigSchema:
     """Top-level config schema for MetaEarth config."""
-
     default_collection: CollectionSchema = field(default_factory=CollectionSchema)
-    providers: Dict[ProviderKey, ProviderSchema] = field(default_factory=dict)
+    providers: List[ProviderSchema] = field(default_factory=list)
     system: SystemSchema = field(default_factory=SystemSchema)
+    run_id: str = field(default="") # computed run id
 
 
 def get_collection_val_or_default(

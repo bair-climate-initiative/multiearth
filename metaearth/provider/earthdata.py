@@ -5,7 +5,7 @@ https://www.earthdata.nasa.gov/
 
 import requests
 
-from .base import STACProvider
+from .stac import STACProvider
 from .earthdata_providers import EARTHDATA_PROVIDERS
 
 

@@ -26,7 +26,7 @@ default_collection:
 
 providers:
   # provider id
-  MPC:
+  - id: MPC
     # collections describe the assets to extract.
     # the collection id, e.g. cop-dem-glo-90
     # is the id used to find the collection
@@ -34,14 +34,13 @@ providers:
     # from the provider, in this case
     # Microsoft Planetary Computer
     collections:
-      cop-dem-glo-90:
+      - id: cop-dem-glo-90
         outdir: data/demo-extraction-dem-glo-90
         # Explicitly set the assets to be downloaded or use `all` to download all assets, like this:
         # assets:
         #  - all
         assets:
           - data
-          - metadata    
         ##
         ## Adds about 900mb of assets; commented out for demo but uncomment to test
         # landsat-8-c2-l2:
@@ -70,7 +69,7 @@ system:
   max_download_attempts: 3
 
   # DEBUG, INFO, WARN, ERROR, FATAL
-  log_level: INFO
+  log_level: DEBUG
   
   # Write the logs here
   log_outdir: ./logs

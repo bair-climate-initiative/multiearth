@@ -11,8 +11,7 @@ import dateutil.parser
 from pystac_client.exceptions import APIError
 from radiant_mlhub import Dataset
 
-from metaearth.provider.base import STACProvider
-
+from .stac import STACProvider
 from ..util.datetime import datetime_str_to_value
 
 
