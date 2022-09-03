@@ -8,12 +8,12 @@ default_collection:
       provider_id: NSIDC_ECS
 
 collections: 
-  # ASO_50M_SD:
-  #   assets:
-  #     - all
-  # ASO_50M_SWE:
-  #   assets:
-  #     - all
+  ASO_50M_SD:
+    assets:
+      - all
+  ASO_50M_SWE:
+    assets:
+      - all
   SNEX20_SWESARR_TB:
     assets:
       - all
