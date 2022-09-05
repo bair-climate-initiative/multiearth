@@ -1,0 +1,21 @@
+default_collection:
+  outdir: data
+  # datetime: 2013-04-02/2019-07-17  # full ASO range
+  datetime: 2021-03-10/2021-03-21
+  aoi_file: config/aoi/conus-expanded.json
+  provider: 
+    name: EARTHDATA
+    kwargs:
+      provider_id: ASF
+
+collections: 
+  UAVSAR_INSAR_INT_GRD:
+    assets:
+      - all
+  UAVSAR_INSAR_AMP_GRD:
+    assets:
+      - all
+  
+system:
+  dry_run: False
+  query_asset_sizes: False
