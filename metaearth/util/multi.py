@@ -1,7 +1,7 @@
 """Multiprocessing utilities."""
 
 from multiprocessing import JoinableQueue, Process, Queue
-from typing import Any, Tuple
+from typing import Tuple
 
 from loguru import logger
 

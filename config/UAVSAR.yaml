@@ -1,0 +1,23 @@
+default_collection:
+  outdir: data
+  datetime: 2021-03-10/2021-03-21
+  aoi_file: config/aoi/conus-expanded.json
+  max_items: 1
+
+providers:
+    - id: EARTHDATA
+      kwargs:
+        subprovider_id: ASF
+      collections:
+        - id: UAVSAR_INSAR_INT_GRD
+          assets:
+            - data
+            - metadata
+        - id: UAVSAR_INSAR_AMP_GRD
+          assets:
+            - data
+            - metadata
+
+system:
+  log_level: INFO
+  remove_existing_if_wrong_size: True

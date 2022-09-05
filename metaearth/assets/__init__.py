@@ -1,11 +1,6 @@
-""" Models for asset extraction and management.
-"""
+"""Models for asset extraction and management."""
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterator, List
-
-from loguru import logger
-
-from ..util.misc import stream_download
+from typing import Any, Dict, Iterator, List, Tuple
 
 __all__ = ["ExtractAsset", "ExtractAssetCollection"]
 
@@ -26,12 +21,12 @@ class DownloadWrapper:
     """
 
     download_func: Any
-    download_kwargs: Dict = field(default_factory=dict)
+    download_kwargs: Dict[str, Any] = field(default_factory=dict)
     download_attempts: int = field(default=0)
     last_download_url: str = field(default="")
     asset: Any = field(default=None)
 
-    def __call__(self) -> str:
+    def __call__(self) -> Any:
         """Call the download function."""
         return self.download_func(**self.download_kwargs)
 
@@ -47,14 +42,8 @@ class ExtractAsset:
     outfile: str = field()
     downloaded: bool = field(default=False)
     filesize_mb: int = field(default=-1)
-
-    # def download(self, url) -> None:
-    #     """Download the asset from the provider."""
-    #     # keep track of the last download url for error reporting
-    #     self.last_download_url = url
-    #     logger.debug(f"Downloading {url} to {self.outfile}")
-    #     stream_download(url, self.outfile)
-    #     logger.debug(f"Downloaded {self.outfile}")
+    provider_name: str = field(default="")
+    collection_name: str = field(default="")
 
     def filesize_unknown(self) -> bool:
         """Return True if the filesize is unknown."""
@@ -71,6 +60,7 @@ class ExtractAssetCollection:
     """
 
     assets: Dict[str, List[ExtractAsset]] = field(default_factory=dict)
+    _sep_str = "*" * 100
 
     def __iter__(self) -> Iterator[ExtractAsset]:
         """Iterate over the assets in the collection."""
@@ -107,29 +97,63 @@ class ExtractAssetCollection:
 
     def total_undownloaded_size(self) -> int:
         """Return the total size (in MB) of all assets in the collection."""
-        return sum(asset.filesize_mb for asset in self if asset.filesize_mb > 0 and not asset.downloaded)
+        return sum(
+            asset.filesize_mb
+            for asset in self
+            if asset.filesize_mb > 0 and not asset.downloaded
+        )
 
-    def summary(self) -> None:
-        """Print a summary of the collection."""
-        assets_types: Dict[str, str] = {}
+    def unique_providers(self) -> List[str]:
+        """Return a str list of unique providers in the collection."""
+        return list({ast.provider_name for ast in self})
+
+    def unique_provider_collections(self) -> List[str]:
+        """Return a str list of unique providers collections in the collection."""
+        return list({ast.provider_name + ": " + ast.collection_name for ast in self})
+
+    def summary(self) -> Tuple[str, str]:
+        """Return a formatted summary of the collection for logging.
+
+        Returns:
+            Tuple[str, str]: a tuple of the summary string and a detailed debug summary string
+        """
+        pvdrs = "\n".join(sorted(self.unique_provider_collections()))
+        summary = f"{self._sep_str}\n" "To Extract:\n" f"{pvdrs}\n"
+        summary_details = "\nDETAILS\n"
+
+        ast_summary = (
+            f"{'Collection':<25}| {'Key':<20}| Description\n" + "-" * 80 + "\n"
+        )
+        added = dict()
         for ast in self:
             desc = ""
             if ast.asset.title:
                 desc += ast.asset.title
             if ast.asset.description:
                 desc += f" ({ast.asset.description})"
-            assets_types[ast.asset_name] = desc
-            logger.debug(f"\n{ast.id} ({ast.dtype}): {ast.filesize_mb} MB")
-        ast_type_str = "\n" + "\n".join(
-            [f'key={k}; description="{v}"' for k, v in assets_types.items()]
+
+            hash_val = ast.collection_name + ast.asset_name + desc
+            if hash_val in added:
+                continue
+
+            added[hash_val] = True
+            ast_summary += f"{ast.collection_name:<25}| {ast.asset_name:<20}| {desc}\n"
+            summary_details += f"\n{ast.id} ({ast.dtype}): {ast.filesize_mb} MB"
+
+        summary += (
+            f"\n\n{ast_summary}\n"
+            f"\n{'Collection size':<35} {self.total_size():,} MB"
+            f"\n{'Size of remaining data to download':<35} {self.total_undownloaded_size():,} MB"
         )
-        logger.info(f"Asset types: {ast_type_str}")
-        logger.info(f"Total asset size: {self.total_size():,} MB")
-        logger.info(f"Total undownloaded asset size: {self.total_undownloaded_size():,} MB")
         if self.num_assets_with_unknown_size() > 0:
-            logger.info(
-                f"Number of assets with unknown size: {self.number_of_assets_with_unknown_size()}"
+            summary += (
+                "\nNumber of assets with unknown size:"
+                f" {self.num_assets_with_unknown_size()}\n"
             )
+
+        summary += f"\n{self._sep_str}\n"
+        summary_details += f"\n{self._sep_str}\n"
+        return summary, summary_details
 
     def add_asset(self, asset: ExtractAsset) -> None:
         """Add an asset to the collection."""

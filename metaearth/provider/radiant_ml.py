@@ -5,14 +5,16 @@ https://www.radiant.earth
 
 import json
 import os
-from typing import Any
+from typing import Any, List
 
 import dateutil.parser
 from pystac_client.exceptions import APIError
 from radiant_mlhub import Dataset
 
-from .stac import STACProvider
+from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
+
 from ..util.datetime import datetime_str_to_value
+from .stac import STACProvider
 
 
 def _list_wrapper(f: Any) -> Any:
@@ -47,7 +49,15 @@ class RadiantMLHub(STACProvider):
     _description: str = "Radiant ML Hub (RADIANT)"
     _default_client_url: str = "https://api.radiant.earth/mlhub/v1"
 
-    def __init__(self, client_url: str = "", api_key: str = "") -> None:
+    def __init__(
+        self,
+        id: ProviderKey,
+        cfg: ConfigSchema,
+        collections: List[CollectionSchema],
+        client_url: str = "",
+        api_key: str = "",
+        **kwargs: Any,
+    ) -> None:
         """Set up the STAC client."""
         if client_url == "":
             client_url = self._default_client_url
@@ -65,6 +75,7 @@ class RadiantMLHub(STACProvider):
     def check_authorization(self) -> bool:
         """Check if the provider is authorized."""
         try:
+            assert self._client._stac_io, "STAC client is not initialized properly"
             self._client._stac_io.read_text("https://api.radiant.earth/mlhub/v1/search")
             return True
         except APIError:

@@ -1,18 +1,14 @@
 """API for downloading assets programmatically. Use cli.py to download assets from command line."""
 
+import datetime
 import os
 import sys
-from datetime import date
-from queue import Empty
-from time import sleep
-from typing import List
+from typing import Any, List, cast
 
 from loguru import logger
 from omegaconf import OmegaConf
-from tqdm.asyncio import tqdm
 
-from .assets import ExtractAssetCollection
-from .config import ConfigSchema
+from .config import CollectionSchema, ConfigSchema
 from .provider import get_provider
 from .provider.base import BaseProvider
 
@@ -25,8 +21,13 @@ def extract_assets(cfg: ConfigSchema) -> bool:
     Returns:
         True if all assets were extracted successfully, False otherwise
     """
-    collection_names = [cltn.id for pvdr in cfg.providers for cltn in pvdr.collections]
-    cfg.run_id = f"{'-'.join(sorted(collection_names))}_{date.today():%H:%M-%m-%d-%Y}"
+    # date and time string to identify the run
+    collection_names = [
+        cltn.id for pvdr in cfg.providers for cltn in pvdr.collections if cltn.id
+    ]
+    cfg.run_id = (
+        f"{'-'.join(sorted(collection_names))}_{datetime.datetime.now():%Y-%m-%d-%H:%m}"
+    )
 
     _setup_logger(cfg)
     pvdrs = _initialize_providers(cfg)
@@ -40,37 +41,34 @@ def extract_assets(cfg: ConfigSchema) -> bool:
 
 def _initialize_providers(cfg: ConfigSchema) -> List[BaseProvider]:
     """Initialize all of the providers with the collections they'll extract."""
-    pvdrs : List[BaseProvider] = []
+    pvdrs: List[BaseProvider] = []
     # for each provider, obtain the config for the collections it will extract (merge with default)
     # then initialize the provider
     for pvdr_cfg in cfg.providers:
-        for i, collection in enumerate(pvdr_cfg.collections):
-            assert 'id' in collection, f"Collection {collection} must provide an id."
-            non_empty_cfg = {k : val for k, val in collection.items() if val}
-            pvdr_cfg.collections[i] = OmegaConf.merge(cfg.default_collection, non_empty_cfg)
-            logger.info(f"Extraction details for provider {pvdr_cfg.id} with collection " +
-                        f"{collection.id}: \n{OmegaConf.to_yaml(pvdr_cfg.collections[i])}")
-        pvdr = get_provider(pvdr_cfg.id, cfg, pvdr_cfg.collections, **pvdr_cfg.kwargs)                        
+        collections = pvdr_cfg.collections
+        pvdr_cfg.collections = []
+        for collection in collections:
+            assert (
+                collection.id is not None
+            ), f"Collection {collection} must provide an id."
+            non_empty_cfg = {
+                k: val for k, val in collection.items() if val and val != -1  # type: ignore
+            }
+            newcfg: Any = OmegaConf.merge(cfg.default_collection, non_empty_cfg)
+            newcfg = cast(CollectionSchema, newcfg)
+            pvdr_cfg.collections.append(newcfg)
+            logger.info(
+                f"Extraction details for provider {pvdr_cfg.id} with collection "
+                + f"{collection.id}: \n{OmegaConf.to_yaml(pvdr_cfg.collections[-1])}"
+            )
+        pvdr = get_provider(pvdr_cfg.id, cfg, pvdr_cfg.collections, **pvdr_cfg.kwargs)
         pvdrs.append(pvdr)
     return pvdrs
 
-    # if isinstance(pvdr, RadiantMLHub):
-    #     logger.info("Using RadiantMLHub Client to download assets")
-    #     # TODO PR - this should add one asset to the asset collection
-    #     pvdr.download_dataset(
-    #         collection_name,
-    #         output_dir=output_dir,
-    #         datetime_range_str=datetime_range_str,
-    #         catalog_only=cfg.system.dry_run,
-    #         aoi_file=aoi_file,
-    #     )
-    #     itm_set = []
-    # else:
 
-
-def _setup_logger(cfg: ConfigSchema) -> str:
-    """Setup the logger."""
-    # string to identify the run    
+def _setup_logger(cfg: ConfigSchema) -> None:
+    """Set up the logger."""
+    # string to identify the run
 
     # create output log dir if not exists
     if not os.path.exists(cfg.system.log_outdir):

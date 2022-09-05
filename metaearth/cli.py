@@ -41,4 +41,12 @@ if __name__ == "__main__":
 
     use_cfg: ConfigSchema = cast(ConfigSchema, cfg)  # for mypy
     logger.info(f"\nUsing config: {OmegaConf.to_yaml(use_cfg)}")
-    extract_assets(use_cfg)
+    success = extract_assets(use_cfg)
+    if cfg.system.dry_run:
+        logger.info("Dry run complete.")
+    else:
+        logger.info(
+            "All assets successfully extracted!"
+            if success
+            else "Some assets were not extracted -- see logs for details."
+        )

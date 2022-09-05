@@ -1,5 +1,5 @@
 """Exposes access to providers, such as Microsoft Planetary Computer."""
-from typing import Any
+from typing import Any, List
 
 from ..config import CollectionSchema, ConfigSchema, ProviderKey
 from .base import BaseProvider
@@ -16,16 +16,18 @@ __all__ = [
 ]
 
 
-def get_provider(id: ProviderKey, cfg: ConfigSchema, collections: CollectionSchema, **kwargs: Any) -> BaseProvider:
+def get_provider(
+    id: ProviderKey,
+    cfg: ConfigSchema,
+    collections: List[CollectionSchema],
+    **kwargs: Any,
+) -> BaseProvider:
     """Get and initialize a provider instance by name."""
-    provider: BaseProvider
     if id == ProviderKey.MPC:
-        provider = MicrosoftPlanetaryComputer
+        return MicrosoftPlanetaryComputer(id, cfg, collections, **kwargs)
     elif id == ProviderKey.EARTHDATA:
-        provider = EarthDataProvider
+        return EarthDataProvider(id, cfg, collections, **kwargs)
     elif id == ProviderKey.RADIANT:
-        provider = RadiantMLHub
+        return RadiantMLHub(id, cfg, collections, **kwargs)
     else:
         raise ValueError(f"Unknown provider {id}")
-
-    return provider(id, cfg, collections, **kwargs)

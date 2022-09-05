@@ -216,6 +216,7 @@ NASA EarthData provides access to a diverse range of providers (around 60!), whe
 
 **Access**
 1. For NASA EarthData, you need to create an account at: https://urs.earthdata.nasa.gov/
+1. Note: if using data from asf.alask.edu, you must also accept the EULA by logging into https://auth.asf.alaska.edu/
 1. Add a `~/.netrc` file (if it doesn't exist) and then append the following contents:
 ```
 machine urs.earthdata.nasa.gov

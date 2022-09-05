@@ -42,19 +42,20 @@ providers:
         assets:
           - data
         ##
-        ## Adds about 900mb of assets; commented out for demo but uncomment to test
-        # landsat-8-c2-l2:
+        ## Adds about 200mb of assets; commented out for demo but uncomment to test
+        # - id: landsat-8-c2-l2
         #   datetime: 2021-01-11/2021-01-28
-        #   aoi_file: ./config/aoi/demo-subset.json
+        #   aoi_file: ./config/aoi/conus-expanded.json
         #   assets:
         #     - SR_B3
         #     - SR_B4
         #     - SR_B5
+        #   max_items: 1
         ##
         ## Another example, but sen 1 files are huge, so commented out (adds 10gb)
         # sentinel-1-rtc:
         #   datetime: 2021-04-21/2021-04-23
-        #   aoi_file: ./config/aoi/demo-subset.json
+        #   aoi_file: ./config/aoi/conus-expanded.json
         #   assets: 
         #     - all
         #   max_items: 1
@@ -69,7 +70,7 @@ system:
   max_download_attempts: 3
 
   # DEBUG, INFO, WARN, ERROR, FATAL
-  log_level: DEBUG
+  log_level: INFO
   
   # Write the logs here
   log_outdir: ./logs
