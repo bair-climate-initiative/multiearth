@@ -2,22 +2,24 @@ default_collection:
   outdir: data/
   datetime: 2022-01-01/2022-04-30
   aoi_file: config/aoi/conus-expanded.json
-  provider: 
-    name: EARTHDATA
-    kwargs:
-      provider_id: POCLOUD
 
-collections: 
-  # JPL GRACE/GRACE-FO Gridded-AOD1B Water-Equivalent-Thickness Surface-Mass Anomaly RL06 dataset for Tellus Level-3 mascon 0.5-degree grid
-  # GRC-GFO_GRIDDED_AOD1B_JPL_MASCON_RL06:
-  #  assets:
-  #    - all
-  # JPL GRACE/GRACE-FO Gridded-AOD1B Water-Equivalent-Thickness Surface-Mass Anomaly RL06 dataset for Tellus Level-3 1.0-degree grid
-  # GRC-GFO_GRIDDED_AOD1B_JPL_1-DEG_RL06:
-  #  assets:
-  #    - all
 
-  # JPL GRACE and GRACE-FO Mascon Ocean, Ice, and Hydrology Equivalent Water Height Coastal Resolution Improvement (CRI) Filtered Release 06 Version 02
-  TELLUS_GRAC-GRFO_MASCON_CRI_GRID_RL06_V2:
-    assets:
-      - all
+providers:
+    - id: EARTHDATA
+      kwargs:
+        subprovider_id: POCLOUD
+      collections: 
+        # JPL GRACE and GRACE-FO Mascon Ocean, Ice, and Hydrology Equivalent Water Height Coastal Resolution 
+        # Improvement (CRI) Filtered Release 06 Version 02
+        - id: TELLUS_GRAC-GRFO_MASCON_CRI_GRID_RL06_V2
+          assets:
+            - all
+
+        # JPL GRACE/GRACE-FO Gridded-AOD1B Water-Equivalent-Thickness Surface-Mass Anomaly RL06 dataset for Tellus Level-3 mascon 0.5-degree grid
+        # GRC-GFO_GRIDDED_AOD1B_JPL_MASCON_RL06:
+        #  assets:
+        #    - all
+        # JPL GRACE/GRACE-FO Gridded-AOD1B Water-Equivalent-Thickness Surface-Mass Anomaly RL06 dataset for Tellus Level-3 1.0-degree grid
+        # GRC-GFO_GRIDDED_AOD1B_JPL_1-DEG_RL06:
+        #  assets:
+        #    - all

@@ -5,7 +5,7 @@
 
 ---
 
-**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: things will change quickly, with little/no warning. The current MetaEarth explainer image above is aspirational: we're actively working on adding more data providers.
+**🔥 Warning 🔥** This is an early alpha version of MetaEarth: things will change quickly, with little/no warning. The current MetaEarth explainer image above is aspirational: we're actively working on adding more data providers.
 
 ---
 
@@ -36,51 +36,49 @@ ls data/demo-extraction-dem-glo-90/cop-dem-glo-90/
 
 
 ## Documentation
-**🔥 Warning 🔥** The documentation is intentionally sparse at the moment: MetaEarth is under rapid development and writing/re-updating the documentation during this period would be more effort than benefit. 
-
 See the *Quick Start* instructions above and then consult [config/demo.yaml](config/demo.yaml) for annotated configuration (we'll keep this annotated config updated).
 
 
 ### MetaEarth Configuration
 The following describes some common goals for configuring MetaEarth, such as specifying a data collection, geographical region, and timerange to extract data from, or specifying a provider to download data from. Consult [config/demo.yaml](config/demo.yaml) for an annotated configuration. The configuration schemas are defined in [metaearth/config.py](metaearth/config.py): take a look at `ConfigSchema`. 
 
-**Specifying the data to be downloaded** takes place through the `collections` config option. For instance, to download [Copernicus DEM](https://planetarycomputer.microsoft.com/dataset/cop-dem-glo-90), which has the collection id `cop-dem-glo-90` (see below on how to find this), the config is like this:
+**Specifying the data to be downloaded** takes place through the `collections` config option for each provider list in `providers`. For instance, to download [Copernicus DEM](https://planetarycomputer.microsoft.com/dataset/cop-dem-glo-90) from Microsoft Planetary Computer (MPC), which has the collection id `cop-dem-glo-90` (see below on how to find this), the config could look like:
 ```yaml
-collections: 
-  cop-dem-glo-90:
-    # specify which assets to download. 
-    # use a single entry with "all" to download all assets.
-    assets:
-      - data
-    # the data will output to this directory.
-    outdir: data/demo-extraction-dem-glo-90
-    # Single date+time, or a range ('/' separator), 
-    # formatted to RFC 3339, section 5.6. 
-    # Use double dots .. for open date ranges.
-      datetime: "2021-04-01/2021-04-23"
-    # area-of-interest file location
-    # this demo contains a small section in Yosemite, 
-    # view by pasing demo.json into http://geojson.io
-    aoi_file: config/aoi/demo.json
-    provider: 
-        # MPC is the identifier for Microsoft Planetary Computer
-        # See "provider key" under "Provider Configurations"
-        name: MPC
+providers:
+  # provider id
+  - id: MPC
+    # collections describe the assets to extract.
+    # the collection id, e.g. cop-dem-glo-90
+    # is the id used to find the collection
+    # in this case copernicus DEM global 90m
+    # from the provider, in this case
+    # Microsoft Planetary Computer
+    collections:
+      - id: cop-dem-glo-90
+        outdir: data/demo-extraction-dem-glo-90
+        # Explicitly set the assets to be downloaded or use `all` to download all assets, like this:
+        # assets:
+        #  - all
+        assets:
+          - data
 ```
 
+**Finding the provider id**: see [Provider Configurations](#provider-configurations) below.
 
-**Finding the collection id**: This depends on the individual provider (see [Provider Configurations](#provider-configurations) below).
+**Finding the collection id**: This depends on the individual provider (see [Provider Configurations](#Provider-Configurations) below).
 
 **Finding the assets**:
-This depends on the individual provider (see [Provider Configurations](in the future, see #provider-configurations) below), but the following seems to be a pretty solid method:
+This depends on the individual provider (see [Provider Configurations](#provider-configurations) below), but the following seems to be a pretty solid method:
 
 1. Create a config with your desired collection id, set the `assets` option to `["all"]` like this (and setting `max_items` to 1 to speed things up):
 ```yaml
-collections: 
-  landsat-8-c2-l2:
-    assets:
-      - all
-    max_items: 1
+providers:
+  - id: MPC
+    collections:
+        - id: landsat-8-c2-l2
+          assets:
+            - all 
+          max_items: 1
 ...
 ```
 2. Run a dry run to see what assets will be downloaded:
@@ -89,25 +87,24 @@ python metaearth/cli.py --config path/to/your/config.yaml system.dry_run=True
 ```
 which will print out a list of assets that will be downloaded and their descriptions, e.g.:
 ```
-18:24:51 INFO Asset types:
-key=ANG; desc="Collection 2 Level-1 Angle Coefficients File (ANG)"
-key=SR_B1; desc="Collection 2 Level-2 Coastal/Aerosol Band (B1) Surface Reflectance"
-key=SR_B2; desc="Collection 2 Level-2 Blue Band (B2) Surface Reflectance"
-key=SR_B3; desc="Collection 2 Level-2 Green Band (B3) Surface Reflectance"
-key=SR_B4; desc="Collection 2 Level-2 Red Band (B4) Surface Reflectance"
-key=SR_B5; desc="Collection 2 Level-2 Near Infrared Band 0.8 (B5) Surface Reflectance"
-key=SR_B6; desc="Collection 2 Level-2 Short-wave Infrared Band 1.6 (B6) Surface Reflectance"
+To Extract:
+Microsoft Planetary Computer (MPC): landsat-8-c2-l2
+
+
+Collection               | Key                 | Description
+--------------------------------------------------------------------------------
+landsat-8-c2-l2          | ANG                 | Angle Coefficients
+landsat-8-c2-l2          | SR_B1               | Coastal/Aerosol Band (B1) 
+landsat-8-c2-l2          | SR_B2               | Blue Band (B2)
+landsat-8-c2-l2          | SR_B3               | Green Band (B3) 
 ...
 ```
-3. Let's say we want the RGB channels (see the descriptions), so we then update our config to download only the assets we want, and remove the `max_items` option:
+3. Let's say we want the RGB channels (see the descriptions), so we then update our config to download only the assets we want:
 ```yaml
-collections: 
-  landsat-8-c2-l2:
-    assets:
-      - SR_B2
-      - SR_B3
-      - SR_B4
-    max_items: 1
+  assets:
+    - SR_B2
+    - SR_B3
+    - SR_B4
 ...
 ```
 
@@ -132,27 +129,27 @@ You can specify a `default_collection` in your config, which will be inherited b
 # where each of these entries can be overridden 
 # in each collection config under "collections"
 default_collection:
+
   # will output to ${output}/collection_name/ by default, can override as an entry in the collection config
   outdir: data/demo-extraction
+
   # default datetime range for each collection, 
   # can override as an entry in the collection config
   # Single date+time, or a range ('/' separator), 
   # formatted to RFC 3339, section 5.6. 
   # Use double dots .. for open date ranges.
   datetime: 2021-04-01/2021-04-23
+  
   # default aoi for each collection (use geojson format - see geojson.io)
   # can override as an entry in the collection config
   # this demo contains a small section in Yosemite
   aoi_file: config/aoi/demo.json
+  
   # Max number of items 
   # (not assets, e.g. each item could have 3 images)
   # to download. -1 for unlimited (or limit set)
   # by the provider
   max_items: -1
-  # default provider for each collection, can override as an entry in the collection config
-  provider: 
-    # MPC is the identifier for Microsoft Planetary Computer
-    name: MPC
 ```
 
 **Dry run and DEBUG are your friend. You have lots of friends.** When dialing in your configuration, keep the `system.dry_run=True` option on your call to `metaearth/cli.py` (or set it in your config). Also, set the `system.log_level=DEBUG` option to see more verbose output.
@@ -166,24 +163,26 @@ from omegaconf import OmegaConf
 from metaearth.api import extract_assets
 from metaearth.config import ConfigSchema
 
-dict_cfg = {
-  "collections": {
-    "cop-dem-glo-90": {
-      "outdir": "data",
-      "assets": ["all"],
-      "aoi_file": "config/aoi/demo.json",
-      "datetime": "2021-04-01/2021-04-23",
-      "provider": {
-        "name": "MPC"
-      }
-    }
-  }
-}
+dict_cfg = dict(
+  providers=[
+    dict(
+      id="MPC",
+      collections=[
+        dict(
+          id="cop-dem-glo-90",
+          outdir="data",
+          assets=["all"],
+          aoi_file="config/aoi/demo.json",
+          datetime="2021-04-01/2021-04-23",
+        )],
+    )]
+)
 in_cfg = OmegaConf.create(dict_cfg)
 cfg_schema = OmegaConf.structured(ConfigSchema)
 cfg = OmegaConf.merge(cfg_schema, in_cfg)
-successfully_extracted_assets, failed_assets = extract_assets(cfg)
-print(f"Successfully extracted {len(successfully_extracted_assets)} assets. {len(failed_assets)} failed.")
+
+success = extract_assets(cfg)
+print("Successfully extracted assets." if success else "Asset extraction failed.")
 ```
 
 
@@ -212,10 +211,11 @@ planetarycomputer configure
 
 
 ### NASA EarthData (provider key: EARTHDATA)
-NASA EarthData provides access to a diverse range of providers (around 60!), where each provider has different data sources.
+NASA EarthData provides access to a diverse range of subproviders (around 60!), where each subprovider has different data sources.
 
 **Access**
 1. For NASA EarthData, you need to create an account at: https://urs.earthdata.nasa.gov/
+1. Note: if using data from the ASF subprovider, you must also accept the EULA by logging into https://auth.asf.alaska.edu/
 1. Add a `~/.netrc` file (if it doesn't exist) and then append the following contents:
 ```
 machine urs.earthdata.nasa.gov
@@ -238,6 +238,23 @@ collections:
 **Finding the Provider ID**: Consult [earthdata_providers.py](metaearth/provider/earthdata_providers.py) for a list of providers and their provider ids.
 
 **Finding the collection id**: TODO (this depends on the provider and we need to figure out a general approach)
+
+### Radiant MLHub (provider key: RADIANT)
+**🔥 Warning 🔥** Radiant MLHub is under development and may be rough around the edges. Let us know if you have any issues.
+
+To query and access the data, you need to obtain an api key from [Radiant MLHub](https://mlhub.earth/). There are two ways to setup your api key with MetaEarth.
+
+1. You can set an environment variable `MLHUB_API_KEY` as instructed by the [official documentation](https://radiant-mlhub.readthedocs.io/en/latest/authentication.html)
+2. You can hardcode it as a kwarg `api_key` in the config under provider section
+```yaml
+providers:
+  - id: RADIANT
+    kwargs:
+      api_key: <your_api_key>
+```
+
+
+See [radiant_ml_landcover.yaml](config/randiant_ml_landcover.yaml) for an example of how to configure a Radiant MLHub collection.
 
 ## Contributing and Development
 The general flow for development looks like this:
@@ -276,6 +293,7 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+Note: a small, but unexpected, oddity is that mypy runs differently as a precommit hook vs. as a standalone command (`mypy .`). Make sure both the pre-commit hook and the standalone command pass before committing.
 
 ## Testing
 Data sources and providers have integration tests that are implemented via Jupyter Notebooks. Serving as both an explanatory medium and documentation, notebooks inside the `nbs` folder serve as a great way to verify that
@@ -319,3 +337,4 @@ Adding authentication for your tests will require editing the `.github/workflows
 
 * [Sat-Extractor](https://github.com/FrontierDevelopmentLab/sat-extractor). Sat-Extractor has a similar goal as MetaEarth, though at the moment it has been designed to run on Google Compute Engine, and as of the start of MetaEarth, Sat-Extractor can only be used with Sen2 and LandSats out-of-the-box. By starting MetaEarth with Microsoft's Planetary Computer, MetaEarth immediately has access to their full data catalog: https://planetarycomputer.microsoft.com/catalog (which subsumes the data accessible by Sat-Extractor plus ~100 other sources). Still, Sat-Extractor is an awesome and highly-configurable project: please use and support it if Sat-Extractor aligns with your goals =).
 
+* [openEO](https://openeo.cloud/) is a very well done project. We'll eventually add them as a provider. A key difference is that we wanted anyone to be able to add a new provider/data-source by opening a PR, rather than integrating with the openEO API.
