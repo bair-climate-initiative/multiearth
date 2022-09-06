@@ -66,8 +66,7 @@ def sha256_hash(s: str) -> str:
 
 
 def item_href_to_outfile(href: str, outdir: str) -> str:
-    """Take an item and returns the output filename for it.
-    """
+    """Take an item and returns the output filename for it."""
     outname = os.path.basename(urlparse(href).path)
     if len(outname) > 64:
         outname = sha256_hash(outname)
