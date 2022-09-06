@@ -8,13 +8,14 @@ import os
 from typing import Any, List
 
 import dateutil.parser
+from loguru import logger
 from pystac_client.exceptions import APIError
 from radiant_mlhub import Dataset
 
 from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
+from metaearth.provider.base import BaseProvider
 
 from ..util.datetime import datetime_str_to_value
-from .stac import STACProvider
 
 
 def _list_wrapper(f: Any) -> Any:
@@ -42,11 +43,11 @@ dateutil.parser.isoparse = _list_wrapper(dateutil.parser.isoparse)
 from pystac_client import Client  # noqa : E402
 
 
-class RadiantMLHub(STACProvider):
+class RadiantMLHub(BaseProvider):
     """Download data and extract assets from the Radient ML Hub."""
 
+    description: str = "Radiant ML Hub (RADIANT)"
     _client: Client
-    _description: str = "Radiant ML Hub (RADIANT)"
     _default_client_url: str = "https://api.radiant.earth/mlhub/v1"
 
     def __init__(
@@ -67,10 +68,8 @@ class RadiantMLHub(STACProvider):
         self._client = Client.open(
             client_url, ignore_conformance=True, parameters={"key": api_key}
         )
-        if not self.check_authorization():
-            raise Exception(
-                f"{self} is not authorized. See the documentation for {self}."
-            )
+
+        super().__init__(id, cfg, collections, **kwargs)
 
     def check_authorization(self) -> bool:
         """Check if the provider is authorized."""
@@ -81,27 +80,43 @@ class RadiantMLHub(STACProvider):
         except APIError:
             return False
 
-    def download_dataset(
-        self,
-        dataset_id: str,
-        output_dir: str,
-        datetime_range_str: str,
-        aoi_file: str,
-        catalog_only: bool = False,
-    ) -> None:
+    def extract_assets(self, dry_run: bool = False) -> bool:
         """Download a dataset to assigned output_dir."""
         all_datasets = [x.id for x in Dataset.list()]
-        assert dataset_id in all_datasets, f"Dataset {dataset_id} does not exist"
-        dataset = Dataset.fetch_by_id(dataset_id, api_key=self.api_key)
-        with open(aoi_file) as f:
-            aoi_data = json.loads(f.read())
-            aoi = aoi_data["features"]
-            assert len(aoi) == 1, "Radiant MLHub only supports one polygon filter"
-            aoi = aoi[0]
-        dataset.download(
-            catalog_only=catalog_only,
-            intersects=aoi,
-            datetime=datetime_str_to_value(datetime_range_str),
-            output_dir=output_dir,
-            api_key=self.api_key,
-        )
+
+        for collection in self.collections:
+            dataset_id = collection.id
+            assert (
+                dataset_id in all_datasets
+            ), f"Collection {dataset_id} does not exist in Radiant ML Hub"
+            assert (
+                collection.datetime is not None
+            ), "Collection {dataset_id} datetime is not set"
+            assert (
+                collection.outdir is not None
+            ), "Collection {dataset_id} outdir is not set"
+
+            dataset = Dataset.fetch_by_id(dataset_id, api_key=self.api_key)
+            if dataset.estimated_dataset_size is not None:
+                sz_mb = int(dataset.estimated_dataset_size) // 1e6
+                logger.info(f"Total {dataset_id} dataset size: {sz_mb:,} MB")
+
+            if dry_run:
+                continue
+
+            aoi = None
+            if collection.aoi_file is not None:
+                with open(collection.aoi_file) as f:
+                    aoi_data = json.loads(f.read())
+                    aoi = aoi_data["features"]
+                    assert (
+                        len(aoi) == 1
+                    ), "Radiant MLHub only supports one polygon filter"
+                    aoi = aoi[0]
+            dataset.download(
+                intersects=aoi,
+                datetime=datetime_str_to_value(collection.datetime),
+                output_dir=collection.outdir,
+                api_key=self.api_key,
+            )
+        return True

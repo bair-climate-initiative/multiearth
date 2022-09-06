@@ -12,6 +12,7 @@ class BaseProvider(abc.ABC):
     id: ProviderKey
     description: str
     cfg: ConfigSchema
+    collections: List[CollectionSchema]
 
     def __init__(
         self,

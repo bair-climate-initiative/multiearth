@@ -36,8 +36,6 @@ ls data/demo-extraction-dem-glo-90/cop-dem-glo-90/
 
 
 ## Documentation
-**🔥 Warning 🔥** The documentation is intentionally sparse at the moment: MetaEarth is under rapid development and writing/re-updating the documentation during this period would be more effort than benefit. 
-
 See the *Quick Start* instructions above and then consult [config/demo.yaml](config/demo.yaml) for annotated configuration (we'll keep this annotated config updated).
 
 
@@ -242,6 +240,7 @@ collections:
 **Finding the collection id**: TODO (this depends on the provider and we need to figure out a general approach)
 
 ### Radiant MLHub (provider key: RADIANT)
+**🔥 Warning 🔥** Radiant MLHub is under development and may be rough around the edges. Let us know if you have any issues.
 
 To query and access the data, you need to obtain an api key from [Radiant MLHub](https://mlhub.earth/). There are two ways to setup your api key with MetaEarth.
 
@@ -249,7 +248,7 @@ To query and access the data, you need to obtain an api key from [Radiant MLHub]
 2. You can hardcode it as a kwarg `api_key` in the config under provider section
 ```yaml
 providers:
-  RADIANT:
+  - id: RADIANT
     kwargs:
       api_key: <your_api_key>
 ```
