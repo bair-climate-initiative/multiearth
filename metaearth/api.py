@@ -45,9 +45,8 @@ def _initialize_providers(cfg: ConfigSchema) -> List[BaseProvider]:
     # for each provider, obtain the config for the collections it will extract (merge with default)
     # then initialize the provider
     for pvdr_cfg in cfg.providers:
-        collections = pvdr_cfg.collections
-        pvdr_cfg.collections = []
-        for collection in collections:
+        new_collections = []
+        for collection in pvdr_cfg.collections:
             assert (
                 collection.id is not None
             ), f"Collection {collection} must provide an id."
@@ -56,11 +55,12 @@ def _initialize_providers(cfg: ConfigSchema) -> List[BaseProvider]:
             }
             newcfg: Any = OmegaConf.merge(cfg.default_collection, non_empty_cfg)
             newcfg = cast(CollectionSchema, newcfg)
-            pvdr_cfg.collections.append(newcfg)
+            new_collections.append(newcfg)
             logger.info(
                 f"Extraction details for provider {pvdr_cfg.id} with collection "
                 + f"{collection.id}: \n{OmegaConf.to_yaml(pvdr_cfg.collections[-1])}"
             )
+        pvdr_cfg.collections = new_collections
         pvdr = get_provider(pvdr_cfg.id, cfg, pvdr_cfg.collections, **pvdr_cfg.kwargs)
         pvdrs.append(pvdr)
     return pvdrs
