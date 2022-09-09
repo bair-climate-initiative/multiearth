@@ -9,6 +9,6 @@ providers:
       subprovider_id: NSIDC_ECS
 
     collections:
-      - id: NSIDC-0530:
+      - id: NSIDC-0530
         assets:
           - all
