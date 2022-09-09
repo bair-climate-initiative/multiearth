@@ -23,41 +23,43 @@ default_collection:
   # by the provider
   max_items: -1
   # default provider for each collection, can override as an entry in the collection config
-  provider: 
-    # MPC is the identifier for Microsoft Planetary Computer
-    name: MPC
 
-# collections describe the assets to extract.
-# the collection id, e.g. cop-dem-glo-90
-# is the id used to find the collection
-# in this case copernicus DEM global 90m
-# from the provider, in this case
-# Microsoft Planetary Computer
-collections: 
-  cop-dem-glo-90:
-    outdir: data/demo-extraction-dem-glo-90
-    # Explicitly set the assets to be downloaded or use `all` to download all assets, like this:
-    # assets:
-    #  - all
-    assets:
-      - data
-  ##
-  ## Adds about 900mb of assets; commented out for demo but uncomment to test
-  # landsat-8-c2-l2:
-  #   datetime: 2021-01-11/2021-01-28
-  #   aoi_file: ./config/aoi/demo-subset.json
-  #   assets:
-  #     - SR_B3
-  #     - SR_B4
-  #     - SR_B5
-  ##
-  ## Another example, but sen 1 files are huge, so commented out (adds 10gb)
-  # sentinel-1-rtc:
-  #   datetime: 2021-04-21/2021-04-23
-  #   aoi_file: ./config/aoi/demo-subset.json
-  #   assets: 
-  #     - all
-  #   max_items: 1
+providers:
+  # provider id
+  - id: MPC
+    # collections describe the assets to extract.
+    # the collection id, e.g. cop-dem-glo-90
+    # is the id used to find the collection
+    # in this case copernicus DEM global 90m
+    # from the provider, in this case
+    # Microsoft Planetary Computer
+    collections:
+      # - id: cop-dem-glo-90
+      #   outdir: data/demo-extraction-dem-glo-90
+      #   # Explicitly set the assets to be downloaded or use `all` to download all assets, like this:
+      #   # assets:
+      #   #  - all
+      #   assets:
+      #     - data
+        ##
+        ## Adds about 200mb of assets; commented out for demo but uncomment to test
+        - id: landsat-8-c2-l2
+          datetime: 2021-01-11/2021-01-28
+          aoi_file: ./config/aoi/conus-expanded.json
+          assets:
+            - all 
+            # - SR_B3
+            # - SR_B4
+            # - SR_B5
+          max_items: 1
+        ##
+        ## Another example, but sen 1 files are huge, so commented out (adds 10gb)
+        # sentinel-1-rtc:
+        #   datetime: 2021-04-21/2021-04-23
+        #   aoi_file: ./config/aoi/conus-expanded.json
+        #   assets: 
+        #     - all
+        #   max_items: 1
 
 system:
   # how many concurrent procs to use for 

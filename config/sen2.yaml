@@ -1,0 +1,12 @@
+default_collection:
+  outdir: data
+  datetime: 2022-01-01/2022-01-02
+  aoi_file: config/aoi/demo.json
+
+
+providers:
+  - id: MPC
+    collections:
+      - id: sentinel-2-l2a
+        assets:
+          - all

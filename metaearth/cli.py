@@ -1,6 +1,6 @@
 """CLI interface to MetaEarth."""
 import argparse
-from typing import List, Tuple
+from typing import Any, List, Tuple, cast
 
 import omegaconf
 from loguru import logger
@@ -21,9 +21,9 @@ def _get_args() -> Tuple[argparse.Namespace, List[str]]:
 
 if __name__ == "__main__":
     args, extra_args = _get_args()
-    schema = OmegaConf.structured(ConfigSchema)
+    schema: ConfigSchema = OmegaConf.structured(ConfigSchema)
     incfg = OmegaConf.load(args.config)
-    cfg = OmegaConf.merge(schema, incfg)
+    cfg: Any = OmegaConf.merge(schema, incfg)  # start with Any for mypy's sake
 
     if len(extra_args) > 0:
         cli_cfg = OmegaConf.from_cli(extra_args)
@@ -38,5 +38,15 @@ if __name__ == "__main__":
             )
 
             exit(1)
-    logger.info(f"\nUsing config: {OmegaConf.to_yaml(cfg)}")
-    extract_assets(cfg)
+
+    use_cfg: ConfigSchema = cast(ConfigSchema, cfg)  # for mypy
+    logger.info(f"\nUsing config: {OmegaConf.to_yaml(use_cfg)}")
+    success = extract_assets(use_cfg)
+    if cfg.system.dry_run:
+        logger.info("Dry run complete.")
+    else:
+        logger.info(
+            "All assets successfully extracted!"
+            if success
+            else "Some assets were not extracted -- see logs for details."
+        )

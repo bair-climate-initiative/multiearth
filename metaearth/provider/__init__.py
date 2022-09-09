@@ -1,12 +1,11 @@
 """Exposes access to providers, such as Microsoft Planetary Computer."""
-from enum import Enum
-from typing import Any
+from typing import Any, List
 
-from metaearth.util.misc import dict_hash
-
+from ..config import CollectionSchema, ConfigSchema, ProviderKey
 from .base import BaseProvider
 from .earthdata import EarthDataProvider
 from .mpc import MicrosoftPlanetaryComputer
+from .radiant_ml import RadiantMLHub
 
 __all__ = [
     "get_provider",
@@ -17,32 +16,18 @@ __all__ = [
 ]
 
 
-class ProviderKey(Enum):
-    """Helper class for identifying providers."""
-
-    MPC = MicrosoftPlanetaryComputer
-    EARTHDATA = EarthDataProvider
-
-
-# keep track of providers instantiated with given args
-_provider_store = {}
-
-
-def get_provider(provider_name: ProviderKey, **kwargs: Any) -> BaseProvider:
-    """Get a provider instance by name."""
-    args_hash = dict_hash(kwargs)
-    key_str = f"{provider_name}_{args_hash}"
-    if key_str not in _provider_store:
-        # create provider instance since it doesn't exist in the store with given args
-        provider: BaseProvider
-        if provider_name == ProviderKey.MPC:
-            provider = MicrosoftPlanetaryComputer(**kwargs)
-        elif provider_name == ProviderKey.EARTHDATA:
-            provider = EarthDataProvider(**kwargs)
-        else:
-            raise ValueError(f"Unknown provider {provider_name}")
-
-        if provider is not None:
-            _provider_store[key_str] = provider
-
-    return _provider_store[key_str]
+def get_provider(
+    id: ProviderKey,
+    cfg: ConfigSchema,
+    collections: List[CollectionSchema],
+    **kwargs: Any,
+) -> BaseProvider:
+    """Get and initialize a provider instance by name."""
+    if id == ProviderKey.MPC:
+        return MicrosoftPlanetaryComputer(id, cfg, collections, **kwargs)
+    elif id == ProviderKey.EARTHDATA:
+        return EarthDataProvider(id, cfg, collections, **kwargs)
+    elif id == ProviderKey.RADIANT:
+        return RadiantMLHub(id, cfg, collections, **kwargs)
+    else:
+        raise ValueError(f"Unknown provider {id}")
