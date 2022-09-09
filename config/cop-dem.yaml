@@ -2,13 +2,13 @@ default_collection:
   outdir: data
   datetime: 2021-04-01/2021-04-23
   aoi_file: config/aoi/aso-2013-2019-regions.json
-  provider: 
-    name: MPC
 
-collections:
-  # cop-dem-glo-90:
-  #   assets:
-  #     - all
-  cop-dem-glo-30:
-    assets:
-      - all
+providers:
+  - id: MPC
+    collections:
+      - id: cop-dem-glo-90
+        assets:
+          - all
+      # cop-dem-glo-30:
+      #   assets:
+      #     - all

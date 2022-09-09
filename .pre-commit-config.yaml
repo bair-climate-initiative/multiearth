@@ -34,7 +34,7 @@ repos:
         hooks:
         -   id: mypy
             args: [--strict, --ignore-missing-imports, --show-error-codes]
-            additional_dependencies: ['types-requests']
+            additional_dependencies: ['types-requests', 'types-python-dateutil']
             exclude: (build|data|dist|logo|logs|output)/
 
     -   repo: local
