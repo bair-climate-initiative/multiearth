@@ -218,7 +218,6 @@ class CdecClient(CDECPointData):
                 z=search_df["ElevationFeet"],
             ),
         )
-        print('gdf', gdf.columns)
         # filter to points within shapefile
         if kwargs['within_geometry']:
             filtered_gdf = gdf[gdf.within(projected_geom.iloc[0]["geometry"])]
