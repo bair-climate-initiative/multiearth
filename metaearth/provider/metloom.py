@@ -20,21 +20,6 @@ from metloom.variables import CdecStationVariables, SensorDescription, SnotelVar
 from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
 from metaearth.provider.base import BaseProvider
 
-# from .earthdata_providers import EARTHDATA_PROVIDERS
-
-# class SnotelProvider(STACProvider):
-#     """Download data and extract assets from the Microsoft Planetary Computer."""
-
-#     _client: SnotelClient
-#     _description: str = "Microsoft Planetary Computer (MPC)"
-#     _default_client_url: str = "https://planetarycomputer.microsoft.com/api/stac/v1"
-
-#     # method override
-#     def asset_to_download_url(self, asset: pystac.Asset) -> str:
-#         """Sign the asset url with the MPC client and return URL."""
-#         return_url: str = pc.sign(asset.href)
-#         return return_url
-
 
 class SnotelClient(SnotelPointData):
     """SnotelClient used by SnotelProvider."""
