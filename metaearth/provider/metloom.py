@@ -12,7 +12,10 @@ import pandas as pd
 from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
 from metloom.pointdata.cdec import CDECPointData
 from metloom.pointdata.snotel import SnotelPointData
-from metloom.pointdata.snotel_client import MetaDataSnotelClient, PointSearchSnotelClient
+from metloom.pointdata.snotel_client import (
+    MetaDataSnotelClient,
+    PointSearchSnotelClient,
+)
 from metloom.variables import SensorDescription, SnotelVariables
 
 from metaearth.provider.base import BaseProvider
@@ -35,15 +38,16 @@ from metaearth.provider.base import BaseProvider
 
 class SnotelClient(SnotelPointData):
     """SnotelClient used by SnotelProvider."""
+
     @classmethod
     def points_from_geometry(
         cls,
         geometry: gpd.GeoDataFrame,
         variables: List[SensorDescription],
-        start_date: datetime= None,
-        end_date: datetime= None,
-        max_items : int = -1,
-        **kwargs
+        start_date: datetime = None,
+        end_date: datetime = None,
+        max_items: int = -1,
+        **kwargs,
     ):
         """
         See docstring for PointData.points_from_geometry
@@ -65,7 +69,7 @@ class SnotelClient(SnotelPointData):
         projected_geom = geometry.to_crs(4326)
         bounds = projected_geom.bounds.iloc[0]
         # TODO: network may need to change to get streamflow
-        network = "SNOW" if kwargs['snow_courses'] else ["SNTL", "USGS", "BOR", "COOP"]
+        network = "SNOW" if kwargs["snow_courses"] else ["SNTL", "USGS", "BOR", "COOP"]
         point_codes = []
         buffer = kwargs["buffer"]
         search_kwargs = {
@@ -78,8 +82,8 @@ class SnotelClient(SnotelPointData):
         for variable in variables:
             # Since getStations only takes in max/min longitude and latitude,
             # we cannot find the stations that lie within the geometry just from
-            # the getStations operation. We can only find the stations within a 
-            # square determined by max/min longitude and latitude. The 
+            # the getStations operation. We can only find the stations within a
+            # square determined by max/min longitude and latitude. The
             # kwargs['within_geometry'] determines the statinos within the actual
             # geometry.
 
@@ -103,9 +107,11 @@ class SnotelClient(SnotelPointData):
         print(len(point_codes))
         dfs = []
         for ind, code in enumerate(point_codes):
-            dfs.append(pd.DataFrame.from_records(
-                [MetaDataSnotelClient(station_triplet=code).get_data()]
-            ).set_index("stationTriplet"))
+            dfs.append(
+                pd.DataFrame.from_records(
+                    [MetaDataSnotelClient(station_triplet=code).get_data()]
+                ).set_index("stationTriplet")
+            )
             if ind == max_items:
                 break
         # dfs = [
@@ -126,14 +132,19 @@ class SnotelClient(SnotelPointData):
                 df["longitude"], df["latitude"], z=df["elevation"]
             ),
         )
-        if kwargs['within_geometry']:
+        if kwargs["within_geometry"]:
             filtered_gdf = gdf[gdf.within(projected_geom.iloc[0]["geometry"])]
         else:
             filtered_gdf = gdf
-        if start_date is not None :
-            filtered_gdf = filtered_gdf[pd.to_datetime(filtered_gdf['beginDate'], format='%Y-%m-%d') < start_date]
-        if end_date is not None :
-            filtered_gdf = filtered_gdf[pd.to_datetime(filtered_gdf['endDate'], format='%Y-%m-%d')> end_date]
+        if start_date is not None:
+            filtered_gdf = filtered_gdf[
+                pd.to_datetime(filtered_gdf["beginDate"], format="%Y-%m-%d")
+                < start_date
+            ]
+        if end_date is not None:
+            filtered_gdf = filtered_gdf[
+                pd.to_datetime(filtered_gdf["endDate"], format="%Y-%m-%d") > end_date
+            ]
 
         points = [
             cls(row[0], row[1], metadata=row[2])
@@ -145,16 +156,18 @@ class SnotelClient(SnotelPointData):
         ]
         return cls.ITERATOR_CLASS(points)
 
+
 class CdecClient(CDECPointData):
     """SnotelClient used by SnotelProvider."""
+
     @classmethod
     def points_from_geometry(
         cls,
         geometry: gpd.GeoDataFrame,
         variables: List[SensorDescription],
-        dates: str= None,
-        max_items : int = -1,
-        **kwargs
+        dates: str = None,
+        max_items: int = -1,
+        **kwargs,
     ):
         """
         See docstring for PointData.points_from_geometry
@@ -176,7 +189,7 @@ class CdecClient(CDECPointData):
         projected_geom = geometry.to_crs(4326)
         bounds = projected_geom.bounds.iloc[0]
         # TODO: network may need to change to get streamflow
-        network = "SNOW" if kwargs['snow_courses'] else ["SNTL", "USGS", "BOR", "COOP"]
+        network = "SNOW" if kwargs["snow_courses"] else ["SNTL", "USGS", "BOR", "COOP"]
         point_codes = []
         buffer = kwargs["buffer"]
         search_kwargs = {
@@ -189,8 +202,8 @@ class CdecClient(CDECPointData):
         for variable in variables:
             # Since getStations only takes in max/min longitude and latitude,
             # we cannot find the stations that lie within the geometry just from
-            # the getStations operation. We can only find the stations within a 
-            # square determined by max/min longitude and latitude. The 
+            # the getStations operation. We can only find the stations within a
+            # square determined by max/min longitude and latitude. The
             # kwargs['within_geometry'] determines the statinos within the actual
             # geometry.
 
@@ -214,9 +227,11 @@ class CdecClient(CDECPointData):
         print(len(point_codes))
         dfs = []
         for ind, code in enumerate(point_codes):
-            dfs.append(pd.DataFrame.from_records(
-                [MetaDataSnotelClient(station_triplet=code).get_data()]
-            ).set_index("stationTriplet"))
+            dfs.append(
+                pd.DataFrame.from_records(
+                    [MetaDataSnotelClient(station_triplet=code).get_data()]
+                ).set_index("stationTriplet")
+            )
             if ind == max_items:
                 break
         # dfs = [
@@ -237,18 +252,22 @@ class CdecClient(CDECPointData):
                 df["longitude"], df["latitude"], z=df["elevation"]
             ),
         )
-        if False:#kwargs['within_geometry']:
+        if False:  # kwargs['within_geometry']:
             filtered_gdf = gdf[gdf.within(projected_geom.iloc[0]["geometry"])]
         else:
             filtered_gdf = gdf
         if dates is not None:
-            beginDate, endDate = dates.split('/')
-            beginDate = datetime.strptime(beginDate, '%Y-%m-%d')
-            endDate = datetime.strptime(endDate, '%Y-%m-%d')
-            print(filtered_gdf['beginDate'])
-            filtered_gdf = filtered_gdf[pd.to_datetime(filtered_gdf['beginDate'], format='%Y-%m-%d') < beginDate]
+            beginDate, endDate = dates.split("/")
+            beginDate = datetime.strptime(beginDate, "%Y-%m-%d")
+            endDate = datetime.strptime(endDate, "%Y-%m-%d")
+            print(filtered_gdf["beginDate"])
+            filtered_gdf = filtered_gdf[
+                pd.to_datetime(filtered_gdf["beginDate"], format="%Y-%m-%d") < beginDate
+            ]
             print(filtered_gdf)
-            filtered_gdf = filtered_gdf[pd.to_datetime(filtered_gdf['endDate'], format='%Y-%m-%d')> endDate]
+            filtered_gdf = filtered_gdf[
+                pd.to_datetime(filtered_gdf["endDate"], format="%Y-%m-%d") > endDate
+            ]
 
         points = [
             cls(row[0], row[1], metadata=row[2])
@@ -259,30 +278,33 @@ class CdecClient(CDECPointData):
             )
         ]
         return cls.ITERATOR_CLASS(points)
+
 
 class MetloomProvider(BaseProvider):
     """Metloom Provider."""
 
     description: str = "Metloom Provider (METLOOM)"
     _client: Type[PointData]
-    _clients: Dict[str, Type[PointData]] = {'SNOTEL': SnotelClient, 'CDEC': CdecClient}
-    
+    _clients: Dict[str, Type[PointData]] = {"SNOTEL": SnotelClient, "CDEC": CdecClient}
+
     _default_client_url: str
-    _allowed_assets: dict = {'SNOTEL': {
-        "WTEQ": SnotelVariables.SWE,
-        "SWE": SnotelVariables.SWE,
-        "SNWD": SnotelVariables.SNOWDEPTH,
-        "SNOW_DEPTH": SnotelVariables.SNOWDEPTH,
-        "TOBS": SnotelVariables.TEMP,
-        "AIR TEMP": SnotelVariables.TEMP,
-        "TAVG": SnotelVariables.TEMPAVG,
-        "TMIN": SnotelVariables.TEMPMIN,
-        "TMAX": SnotelVariables.TEMPMAX,
-        "PRCPSA": SnotelVariables.PRECIPITATION,
-        "PRECIPITATION": SnotelVariables.PRECIPITATION,
-    }}
-    _allowed_datasets : List[str] = ['SNOTEL', 'CDEC']
-    _locations : Dict[str, List[str]] = {}
+    _allowed_assets: dict = {
+        "SNOTEL": {
+            "WTEQ": SnotelVariables.SWE,
+            "SWE": SnotelVariables.SWE,
+            "SNWD": SnotelVariables.SNOWDEPTH,
+            "SNOW_DEPTH": SnotelVariables.SNOWDEPTH,
+            "TOBS": SnotelVariables.TEMP,
+            "AIR TEMP": SnotelVariables.TEMP,
+            "TAVG": SnotelVariables.TEMPAVG,
+            "TMIN": SnotelVariables.TEMPMIN,
+            "TMAX": SnotelVariables.TEMPMAX,
+            "PRCPSA": SnotelVariables.PRECIPITATION,
+            "PRECIPITATION": SnotelVariables.PRECIPITATION,
+        }
+    }
+    _allowed_datasets: List[str] = ["SNOTEL", "CDEC"]
+    _locations: Dict[str, List[str]] = {}
     _assets = {}
 
     def __init__(
@@ -313,36 +335,47 @@ class MetloomProvider(BaseProvider):
                 collection.outdir is not None
             ), "Collection {dataset_id} outdir is not set"
             allowed_assets = self._allowed_assets[dataset_id]
-            assert (
-                any(asset in collection.assets  for asset in allowed_assets)
+            assert any(
+                asset in collection.assets for asset in allowed_assets
             ), "asset is not in allowed assets"
             self._client = self._clients[dataset_id]
             assets = [allowed_assets[asset] for asset in collection.assets]
-            start_date, end_date = collection.datetime.split('/')
-            start_date = datetime.strptime(start_date, '%Y-%m-%d')
-            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            start_date, end_date = collection.datetime.split("/")
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
             aoi = None
             if collection.aoi_file is not None:
                 region = gpd.read_file(collection.aoi_file)
-            self._locations[dataset_id] = self._region_to_items(region, collection.datetime, collection.assets, dataset_id, collection.max_items)
+            self._locations[dataset_id] = self._region_to_items(
+                region,
+                collection.datetime,
+                collection.assets,
+                dataset_id,
+                collection.max_items,
+            )
             daily_data = []
-            for location in self._locations[dataset_id].to_dataframe()['id']:
-                daily_data.append(self._client(location, "MyStation").get_daily_data(start_date, end_date, assets))
+            for location in self._locations[dataset_id].to_dataframe()["id"]:
+                daily_data.append(
+                    self._client(location, "MyStation").get_daily_data(
+                        start_date, end_date, assets
+                    )
+                )
             self._assets[dataset_id] = daily_data
-            
+
             if dry_run:
                 continue
-            with open(f'{collection.outdir}/{dataset_id}.pkl', 'wb') as f:
-                pickle.dump(self._assets[dataset_id], f)            
-        
+            with open(f"{collection.outdir}/{dataset_id}.pkl", "wb") as f:
+                pickle.dump(self._assets[dataset_id], f)
+
         return True
+
     # method override
     def _region_to_items(
         self,
         region: gpd.GeoDataFrame,
         datetime: str,
         collection: List[str],
-        id : str,
+        id: str,
         max_items: int = -1,
     ) -> gpd.GeoDataFrame:
         """
@@ -388,8 +421,6 @@ class SnotelProvider(MetloomProvider):
         Returns: True if all assets extracted successfully, False otherwise.
         """
         pass
-        
-
 
 
 class CDECProvider(MetloomProvider):

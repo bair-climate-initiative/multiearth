@@ -4,9 +4,9 @@ from typing import Any, List
 from ..config import CollectionSchema, ConfigSchema, ProviderKey
 from .base import BaseProvider
 from .earthdata import EarthDataProvider
+from .metloom import MetloomProvider
 from .mpc import MicrosoftPlanetaryComputer
 from .radiant_ml import RadiantMLHub
-from .metloom import MetloomProvider
 
 __all__ = [
     "get_provider",
