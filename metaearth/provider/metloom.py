@@ -15,7 +15,7 @@ from metloom.pointdata.snotel_client import (
     MetaDataSnotelClient,
     PointSearchSnotelClient,
 )
-from metloom.variables import SensorDescription, SnotelVariables, CdecStationVariables
+from metloom.variables import CdecStationVariables, SensorDescription, SnotelVariables
 
 from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
 from metaearth.provider.base import BaseProvider
@@ -166,7 +166,7 @@ class CdecClient(CDECPointData):
         start_date: datetime = None,
         end_date: datetime = None,
         max_items: int = -1,
-        **kwargs
+        **kwargs,
     ):
         """
         See docstring for PointData.points_from_geometry
@@ -193,20 +193,19 @@ class CdecClient(CDECPointData):
         station_search_kwargs = {}
 
         # Filter to manual, monthly measurements if looking for snow courses
-        if kwargs['snow_courses']:
+        if kwargs["snow_courses"]:
             station_search_kwargs["dur"] = "M"
             station_search_kwargs["collect"] = "MANUAL+ENTRY"
         for variable in variables:
             result_df = cls._station_sensor_search(
-                bounds, variable, buffer=kwargs["buffer"],
-                **station_search_kwargs
+                bounds, variable, buffer=kwargs["buffer"], **station_search_kwargs
             )
             if result_df is not None:
                 result_df["index_id"] = result_df["ID"]
                 result_df.set_index("index_id", inplace=True)
-                search_df = append_df(
-                    search_df, result_df
-                ).drop_duplicates(subset=['ID'])
+                search_df = append_df(search_df, result_df).drop_duplicates(
+                    subset=["ID"]
+                )
         # return empty collection if we didn't find any points
         if search_df is None:
             return cls.ITERATOR_CLASS([])
@@ -219,7 +218,7 @@ class CdecClient(CDECPointData):
             ),
         )
         # filter to points within shapefile
-        if kwargs['within_geometry']:
+        if kwargs["within_geometry"]:
             filtered_gdf = gdf[gdf.within(projected_geom.iloc[0]["geometry"])]
         else:
             filtered_gdf = gdf
@@ -233,7 +232,7 @@ class CdecClient(CDECPointData):
             )
         ]
         # filter to snow courses or not snowcourses depending on desired result
-        if kwargs['snow_courses']:
+        if kwargs["snow_courses"]:
             return cls.ITERATOR_CLASS([p for p in points if p.is_partly_snow_course()])
         else:
             return cls.ITERATOR_CLASS(
@@ -282,8 +281,7 @@ class MetloomProvider(BaseProvider):
             "PRCPSA": CdecStationVariables.PRECIPITATION,
             "PRECIPITATION": CdecStationVariables.PRECIPITATION,
             "RH": CdecStationVariables.RH,
-
-        }
+        },
     }
     _allowed_datasets: List[str] = ["SNOTEL", "CDEC"]
     _locations: Dict[str, List[str]] = {}
