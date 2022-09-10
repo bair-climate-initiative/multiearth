@@ -6,6 +6,7 @@ from .base import BaseProvider
 from .earthdata import EarthDataProvider
 from .mpc import MicrosoftPlanetaryComputer
 from .radiant_ml import RadiantMLHub
+from .metloom import MetloomProvider
 
 __all__ = [
     "get_provider",
@@ -13,6 +14,7 @@ __all__ = [
     "BaseProvider",
     "MicrosoftPlanetaryComputer",
     "EarthDataProvider",
+    "MetloomProvider",
 ]
 
 
@@ -29,5 +31,7 @@ def get_provider(
         return EarthDataProvider(id, cfg, collections, **kwargs)
     elif id == ProviderKey.RADIANT:
         return RadiantMLHub(id, cfg, collections, **kwargs)
+    elif id == ProviderKey.METLOOM:
+        return MetloomProvider(id, cfg, collections, **kwargs)
     else:
         raise ValueError(f"Unknown provider {id}")
