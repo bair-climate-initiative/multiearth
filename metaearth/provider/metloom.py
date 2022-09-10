@@ -15,7 +15,7 @@ from metloom.pointdata.snotel_client import (
     MetaDataSnotelClient,
     PointSearchSnotelClient,
 )
-from metloom.variables import SensorDescription, SnotelVariables
+from metloom.variables import SensorDescription, SnotelVariables, CdecStationVariables
 
 from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
 from metaearth.provider.base import BaseProvider
@@ -100,11 +100,9 @@ class SnotelClient(SnotelPointData):
             ).get_data()
             if len(response) > 0:
                 point_codes += response
-            print("variable", variable)
 
         # no duplicate codes
         point_codes = list(set(point_codes))
-        print(len(point_codes))
         dfs = []
         for ind, code in enumerate(point_codes):
             dfs.append(
@@ -165,9 +163,10 @@ class CdecClient(CDECPointData):
         cls,
         geometry: gpd.GeoDataFrame,
         variables: List[SensorDescription],
-        dates: str = None,
+        start_date: datetime = None,
+        end_date: datetime = None,
         max_items: int = -1,
-        **kwargs,
+        **kwargs
     ):
         """
         See docstring for PointData.points_from_geometry
@@ -175,109 +174,72 @@ class CdecClient(CDECPointData):
         Args:
             geometry: GeoDataFrame for shapefile from gpd.read_file
             variables: List of SensorDescription
-            snow_courses: boolean for including only snowcourse data or no
-                snowcourse data
+            snow_courses: Boolean for including only snowcourse data or no
+            snowcourse data
             within_geometry: filter the points to within the shapefile
-                instead of just the extents. Default True
+            instead of just the extents. Default True
             buffer: buffer added to search box
+
         Returns:
             PointDataCollection
         """
         # assign defaults
         kwargs = cls._add_default_kwargs(kwargs)
 
+        # Assume station search result is in 4326
         projected_geom = geometry.to_crs(4326)
         bounds = projected_geom.bounds.iloc[0]
-        # TODO: network may need to change to get streamflow
-        network = "SNOW" if kwargs["snow_courses"] else ["SNTL", "USGS", "BOR", "COOP"]
-        point_codes = []
-        buffer = kwargs["buffer"]
-        search_kwargs = {
-            "max_latitude": bounds["maxy"] + buffer,
-            "min_latitude": bounds["miny"] - buffer,
-            "max_longitude": bounds["maxx"] + buffer,
-            "min_longitude": bounds["minx"] - buffer,
-            "network_cds": network,
-        }
+        search_df = None
+        station_search_kwargs = {}
+
+        # Filter to manual, monthly measurements if looking for snow courses
+        if kwargs['snow_courses']:
+            station_search_kwargs["dur"] = "M"
+            station_search_kwargs["collect"] = "MANUAL+ENTRY"
         for variable in variables:
-            # Since getStations only takes in max/min longitude and latitude,
-            # we cannot find the stations that lie within the geometry just from
-            # the getStations operation. We can only find the stations within a
-            # square determined by max/min longitude and latitude. The
-            # kwargs['within_geometry'] determines the statinos within the actual
-            # geometry.
-
-            # this search is default AND on all parameters
-            # so search for each variable seperately
-            response = PointSearchSnotelClient(
-                element_cds=variable.code,
-                **search_kwargs
-                # ordinals=  # TODO: what are ordinals?
-                # ordinals are NRCS descriptors for parameters that may have multiple
-                # measurements, such as two pillows at a site, or two measurements of
-                # SWE from the same pillow. Fairly comfortable with the idea that we
-                # can assume ordinal=1
-            ).get_data()
-            if len(response) > 0:
-                point_codes += response
-            print("variable", variable)
-
-        # no duplicate codes
-        point_codes = list(set(point_codes))
-        print(len(point_codes))
-        dfs = []
-        for ind, code in enumerate(point_codes):
-            dfs.append(
-                pd.DataFrame.from_records(
-                    [MetaDataSnotelClient(station_triplet=code).get_data()]
-                ).set_index("stationTriplet")
+            result_df = cls._station_sensor_search(
+                bounds, variable, buffer=kwargs["buffer"],
+                **station_search_kwargs
             )
-            if ind == max_items:
-                break
-        # dfs = [
-        #     pd.DataFrame.from_records(
-        #         [MetaDataSnotelClient(station_triplet=code).get_data()]
-        #     ).set_index("stationTriplet") for code in point_codes
-        # ]
-
-        if len(dfs) > 0:
-            df = reduce(lambda a, b: append_df(a, b), dfs)
-        else:
+            if result_df is not None:
+                result_df["index_id"] = result_df["ID"]
+                result_df.set_index("index_id", inplace=True)
+                search_df = append_df(
+                    search_df, result_df
+                ).drop_duplicates(subset=['ID'])
+        # return empty collection if we didn't find any points
+        if search_df is None:
             return cls.ITERATOR_CLASS([])
-
-        df.reset_index(inplace=True)
         gdf = gpd.GeoDataFrame(
-            df,
+            search_df,
             geometry=gpd.points_from_xy(
-                df["longitude"], df["latitude"], z=df["elevation"]
+                search_df["Longitude"],
+                search_df["Latitude"],
+                z=search_df["ElevationFeet"],
             ),
         )
-        if False:  # kwargs['within_geometry']:
+        print('gdf', gdf.columns)
+        # filter to points within shapefile
+        if kwargs['within_geometry']:
             filtered_gdf = gdf[gdf.within(projected_geom.iloc[0]["geometry"])]
         else:
             filtered_gdf = gdf
-        if dates is not None:
-            beginDate, endDate = dates.split("/")
-            beginDate = datetime.strptime(beginDate, "%Y-%m-%d")
-            endDate = datetime.strptime(endDate, "%Y-%m-%d")
-            print(filtered_gdf["beginDate"])
-            filtered_gdf = filtered_gdf[
-                pd.to_datetime(filtered_gdf["beginDate"], format="%Y-%m-%d") < beginDate
-            ]
-            print(filtered_gdf)
-            filtered_gdf = filtered_gdf[
-                pd.to_datetime(filtered_gdf["endDate"], format="%Y-%m-%d") > endDate
-            ]
 
         points = [
             cls(row[0], row[1], metadata=row[2])
             for row in zip(
-                filtered_gdf["stationTriplet"],
-                filtered_gdf["name"],
+                filtered_gdf.index,
+                filtered_gdf["Station Name"],
                 filtered_gdf["geometry"],
             )
         ]
-        return cls.ITERATOR_CLASS(points)
+        # filter to snow courses or not snowcourses depending on desired result
+        if kwargs['snow_courses']:
+            return cls.ITERATOR_CLASS([p for p in points if p.is_partly_snow_course()])
+        else:
+            return cls.ITERATOR_CLASS(
+                [p for p in points if not p.is_only_snow_course(variables)]
+            )
 
 
 class MetloomProvider(BaseProvider):
@@ -297,10 +259,31 @@ class MetloomProvider(BaseProvider):
             "TOBS": SnotelVariables.TEMP,
             "AIR TEMP": SnotelVariables.TEMP,
             "TAVG": SnotelVariables.TEMPAVG,
+            "TEMPAVG": SnotelVariables.TEMPAVG,
             "TMIN": SnotelVariables.TEMPMIN,
+            "TEMPMIN": SnotelVariables.TEMPMIN,
             "TMAX": SnotelVariables.TEMPMAX,
+            "TEMPMAX": SnotelVariables.TEMPMAX,
             "PRCPSA": SnotelVariables.PRECIPITATION,
             "PRECIPITATION": SnotelVariables.PRECIPITATION,
+            "RH": SnotelVariables.RH,
+        },
+        "CDEC": {
+            "WTEQ": CdecStationVariables.SWE,
+            "SWE": CdecStationVariables.SWE,
+            "SNWD": CdecStationVariables.SNOWDEPTH,
+            "SNOW_DEPTH": CdecStationVariables.SNOWDEPTH,
+            "TEMP": CdecStationVariables.TEMP,
+            "TAVG": CdecStationVariables.TEMPAVG,
+            "TEMPAVG": CdecStationVariables.TEMPAVG,
+            "TMIN": CdecStationVariables.TEMPMIN,
+            "TEMPMIN": CdecStationVariables.TEMPMIN,
+            "TMAX": CdecStationVariables.TEMPMAX,
+            "TEMPMAX": CdecStationVariables.TEMPMAX,
+            "PRCPSA": CdecStationVariables.PRECIPITATION,
+            "PRECIPITATION": CdecStationVariables.PRECIPITATION,
+            "RH": CdecStationVariables.RH,
+
         }
     }
     _allowed_datasets: List[str] = ["SNOTEL", "CDEC"]
@@ -321,9 +304,9 @@ class MetloomProvider(BaseProvider):
         return True
 
     def extract_assets(self, dry_run: bool = False) -> bool:
-        if dry_run:
-            collection.max_items = 10
         for collection in self.collections:
+            if dry_run:
+                collection.max_items = 10
             dataset_id = collection.id
             assert (
                 dataset_id in self._allowed_datasets
