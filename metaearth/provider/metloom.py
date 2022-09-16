@@ -31,6 +31,7 @@ from metaearth.provider.base import BaseProvider
 class SnotelClient(SnotelPointData):  # type: ignore
     """SnotelClient used by SnotelProvider."""
 
+    @classmethod
     def points_from_geometry(
         cls,
         geometry: gpd.GeoDataFrame,
@@ -137,6 +138,7 @@ class SnotelClient(SnotelPointData):  # type: ignore
 class CdecClient(CDECPointData):  # type: ignore
     """SnotelClient used by SnotelProvider."""
 
+    @classmethod
     def points_from_geometry(
         cls,
         geometry: gpd.GeoDataFrame,
@@ -355,6 +357,7 @@ class MetloomProvider(BaseProvider):
         """
         variables = [self._allowed_assets[id][variable] for variable in collection]
         self.collections = variables
+        print(variables)
         regions = self._client.points_from_geometry(
             region,
             variables,
