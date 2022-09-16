@@ -124,14 +124,7 @@ class SnotelClient(SnotelPointData):  # type: ignore
             if i == max_items:
                 break
             points.append(cls(row[0], row[1], metadata=row[2]))
-        # points = [
-        #     cls(row[0], row[1], metadata=row[2])
-        #     for row in zip(
-        #         filtered_gdf["stationTriplet"],
-        #         filtered_gdf["name"],
-        #         filtered_gdf["geometry"],
-        #     )
-        # ]
+
         return cls.ITERATOR_CLASS(points)
 
 
@@ -211,14 +204,6 @@ class CdecClient(CDECPointData):  # type: ignore
             if i == max_items:
                 break
             points.append(cls(row[0], row[1], metadata=row[2]))
-        # points = [
-        #     cls(row[0], row[1], metadata=row[2])
-        #     for row in zip(
-        #         filtered_gdf.index,
-        #         filtered_gdf["Station Name"],
-        #         filtered_gdf["geometry"],
-        #     )
-        # ]
         # filter to snow courses or not snowcourses depending on desired result
         if kwargs["snow_courses"]:
             return cls.ITERATOR_CLASS([p for p in points if p.is_partly_snow_course()])
