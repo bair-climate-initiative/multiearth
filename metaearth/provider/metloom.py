@@ -1,6 +1,8 @@
-import json
+"""Metloom Provider.
+
+https://github.com/M3Works/metloom
+"""
 import pickle
-from ctypes import Union
 from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Type
@@ -15,27 +17,31 @@ from metloom.pointdata.snotel_client import (
     MetaDataSnotelClient,
     PointSearchSnotelClient,
 )
-from metloom.variables import CdecStationVariables, SensorDescription, SnotelVariables
+from metloom.variables import (
+    CdecStationVariables,
+    SensorDescription,
+    SnotelVariables,
+    VariableBase,
+)
 
 from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
 from metaearth.provider.base import BaseProvider
 
 
-class SnotelClient(SnotelPointData):
+class SnotelClient(SnotelPointData):  # type: ignore
     """SnotelClient used by SnotelProvider."""
 
-    @classmethod
     def points_from_geometry(
         cls,
         geometry: gpd.GeoDataFrame,
         variables: List[SensorDescription],
-        start_date: datetime = None,
-        end_date: datetime = None,
+        start_date: datetime,
+        end_date: datetime,
         max_items: int = -1,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> PointData.ITERATOR_CLASS:
         """
-        See docstring for PointData.points_from_geometry
+        See docstring for PointData.points_from_geometry.
 
         Args:
             geometry: GeoDataFrame for shapefile from gpd.read_file
@@ -53,7 +59,7 @@ class SnotelClient(SnotelPointData):
 
         projected_geom = geometry.to_crs(4326)
         bounds = projected_geom.bounds.iloc[0]
-        # TODO: network may need to change to get streamflow
+
         network = "SNOW" if kwargs["snow_courses"] else ["SNTL", "USGS", "BOR", "COOP"]
         point_codes = []
         buffer = kwargs["buffer"]
@@ -65,23 +71,8 @@ class SnotelClient(SnotelPointData):
             "network_cds": network,
         }
         for variable in variables:
-            # Since getStations only takes in max/min longitude and latitude,
-            # we cannot find the stations that lie within the geometry just from
-            # the getStations operation. We can only find the stations within a
-            # square determined by max/min longitude and latitude. The
-            # kwargs['within_geometry'] determines the statinos within the actual
-            # geometry.
-
-            # this search is default AND on all parameters
-            # so search for each variable seperately
             response = PointSearchSnotelClient(
-                element_cds=variable.code,
-                **search_kwargs
-                # ordinals=  # TODO: what are ordinals?
-                # ordinals are NRCS descriptors for parameters that may have multiple
-                # measurements, such as two pillows at a site, or two measurements of
-                # SWE from the same pillow. Fairly comfortable with the idea that we
-                # can assume ordinal=1
+                element_cds=variable.code, **search_kwargs
             ).get_data()
             if len(response) > 0:
                 point_codes += response
@@ -95,13 +86,6 @@ class SnotelClient(SnotelPointData):
                     [MetaDataSnotelClient(station_triplet=code).get_data()]
                 ).set_index("stationTriplet")
             )
-            if ind == max_items:
-                break
-        # dfs = [
-        #     pd.DataFrame.from_records(
-        #         [MetaDataSnotelClient(station_triplet=code).get_data()]
-        #     ).set_index("stationTriplet") for code in point_codes
-        # ]
 
         if len(dfs) > 0:
             df = reduce(lambda a, b: append_df(a, b), dfs)
@@ -128,33 +112,40 @@ class SnotelClient(SnotelPointData):
             filtered_gdf = filtered_gdf[
                 pd.to_datetime(filtered_gdf["endDate"], format="%Y-%m-%d") > end_date
             ]
-
-        points = [
-            cls(row[0], row[1], metadata=row[2])
-            for row in zip(
+        points = []
+        for i, row in enumerate(
+            zip(
                 filtered_gdf["stationTriplet"],
                 filtered_gdf["name"],
                 filtered_gdf["geometry"],
             )
-        ]
+        ):
+            if i == max_items:
+                break
+            points.append(cls(row[0], row[1], metadata=row[2]))
+        # points = [
+        #     cls(row[0], row[1], metadata=row[2])
+        #     for row in zip(
+        #         filtered_gdf["stationTriplet"],
+        #         filtered_gdf["name"],
+        #         filtered_gdf["geometry"],
+        #     )
+        # ]
         return cls.ITERATOR_CLASS(points)
 
 
-class CdecClient(CDECPointData):
+class CdecClient(CDECPointData):  # type: ignore
     """SnotelClient used by SnotelProvider."""
 
-    @classmethod
     def points_from_geometry(
         cls,
         geometry: gpd.GeoDataFrame,
         variables: List[SensorDescription],
-        start_date: datetime = None,
-        end_date: datetime = None,
         max_items: int = -1,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> PointData.ITERATOR_CLASS:
         """
-        See docstring for PointData.points_from_geometry
+        See docstring for PointData.points_from_geometry.
 
         Args:
             geometry: GeoDataFrame for shapefile from gpd.read_file
@@ -207,15 +198,25 @@ class CdecClient(CDECPointData):
             filtered_gdf = gdf[gdf.within(projected_geom.iloc[0]["geometry"])]
         else:
             filtered_gdf = gdf
-
-        points = [
-            cls(row[0], row[1], metadata=row[2])
-            for row in zip(
+        points = []
+        for i, row in enumerate(
+            zip(
                 filtered_gdf.index,
                 filtered_gdf["Station Name"],
                 filtered_gdf["geometry"],
             )
-        ]
+        ):
+            if i == max_items:
+                break
+            points.append(cls(row[0], row[1], metadata=row[2]))
+        # points = [
+        #     cls(row[0], row[1], metadata=row[2])
+        #     for row in zip(
+        #         filtered_gdf.index,
+        #         filtered_gdf["Station Name"],
+        #         filtered_gdf["geometry"],
+        #     )
+        # ]
         # filter to snow courses or not snowcourses depending on desired result
         if kwargs["snow_courses"]:
             return cls.ITERATOR_CLASS([p for p in points if p.is_partly_snow_course()])
@@ -233,7 +234,7 @@ class MetloomProvider(BaseProvider):
     _clients: Dict[str, Type[PointData]] = {"SNOTEL": SnotelClient, "CDEC": CdecClient}
 
     _default_client_url: str
-    _allowed_assets: dict = {
+    _allowed_assets: Dict[str, Dict[str, VariableBase]] = {
         "SNOTEL": {
             "WTEQ": SnotelVariables.SWE,
             "SWE": SnotelVariables.SWE,
@@ -269,8 +270,8 @@ class MetloomProvider(BaseProvider):
         },
     }
     _allowed_datasets: List[str] = ["SNOTEL", "CDEC"]
-    _locations: Dict[str, List[str]] = {}
-    _assets = {}
+    _locations: Dict[str, gpd.GeoDataFrame] = {}
+    _assets: Dict[str, List[str]] = {}
 
     def __init__(
         self,
@@ -279,6 +280,7 @@ class MetloomProvider(BaseProvider):
         collections: List[CollectionSchema],
         **kwargs: Any,
     ) -> None:
+        """Initialize Metloom Provider."""
         super().__init__(id, cfg, collections, **kwargs)
 
     def check_authorization(self) -> bool:
@@ -286,6 +288,7 @@ class MetloomProvider(BaseProvider):
         return True
 
     def extract_assets(self, dry_run: bool = False) -> bool:
+        """Download a dataset to assigned output_dir."""
         for collection in self.collections:
             if dry_run:
                 collection.max_items = 10
@@ -300,20 +303,21 @@ class MetloomProvider(BaseProvider):
                 collection.outdir is not None
             ), "Collection {dataset_id} outdir is not set"
             allowed_assets = self._allowed_assets[dataset_id]
-            assert any(
-                asset in collection.assets for asset in allowed_assets
+            assert collection.assets is not None
+            assert all(
+                asset in allowed_assets for asset in collection.assets
             ), "asset is not in allowed assets"
             self._client = self._clients[dataset_id]
             assets = [allowed_assets[asset] for asset in collection.assets]
-            start_date, end_date = collection.datetime.split("/")
-            start_date = datetime.strptime(start_date, "%Y-%m-%d")
-            end_date = datetime.strptime(end_date, "%Y-%m-%d")
-            aoi = None
+            start_date_temp, end_date_temp = collection.datetime.split("/")
+            start_date = datetime.strptime(start_date_temp, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date_temp, "%Y-%m-%d")
             if collection.aoi_file is not None:
                 region = gpd.read_file(collection.aoi_file)
             self._locations[dataset_id] = self._region_to_items(
                 region,
-                collection.datetime,
+                start_date,
+                end_date,
                 collection.assets,
                 dataset_id,
                 collection.max_items,
@@ -338,19 +342,25 @@ class MetloomProvider(BaseProvider):
     def _region_to_items(
         self,
         region: gpd.GeoDataFrame,
-        datetime: str,
+        start_date: datetime,
+        end_date: datetime,
         collection: List[str],
         id: str,
         max_items: int = -1,
     ) -> gpd.GeoDataFrame:
-        """
-        Return a dataframe of location name, triplet id,
-        datasource (likely NRCS for SNOTEL), and geometry
+        """Return a dataframe of regions.
+
+        Dataframe consists of location name, triplet id, datasource (likely NRCS for SNOTEL),
+        and geometry.
         """
         variables = [self._allowed_assets[id][variable] for variable in collection]
         self.collections = variables
         regions = self._client.points_from_geometry(
-            region, variables, dates=datetime, max_items=max_items
+            region,
+            variables,
+            start_date=start_date,
+            end_date=end_date,
+            max_items=max_items,
         )
         return regions
 
