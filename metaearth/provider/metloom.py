@@ -1,8 +1,39 @@
 """Metloom Provider.
 
 https://github.com/M3Works/metloom
+
+Metloom follows the BSD License:
+
+Copyright (c) 2021, M3Works
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice, this
+  list of conditions and the following disclaimer in the documentation and/or
+  other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from this
+  software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
 """
-import pickle
+import os
 from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Type
@@ -259,6 +290,7 @@ class MetloomProvider(BaseProvider):
     _allowed_datasets: List[str] = ["SNOTEL", "CDEC"]
     _locations: Dict[str, gpd.GeoDataFrame] = {}
     _assets: Dict[str, List[str]] = {}
+    _data: Dict[str, gpd.GeoDataFrame] = {}
 
     def __init__(
         self,
@@ -296,6 +328,7 @@ class MetloomProvider(BaseProvider):
             ), "asset is not in allowed assets"
             self._client = self._clients[dataset_id]
             assets = [allowed_assets[asset] for asset in collection.assets]
+            self._assets[dataset_id] = assets
             start_date_temp, end_date_temp = collection.datetime.split("/")
             start_date = datetime.strptime(start_date_temp, "%Y-%m-%d")
             end_date = datetime.strptime(end_date_temp, "%Y-%m-%d")
@@ -316,12 +349,15 @@ class MetloomProvider(BaseProvider):
                         start_date, end_date, assets
                     )
                 )
-            self._assets[dataset_id] = daily_data
 
             if dry_run:
                 continue
-            with open(f"{collection.outdir}/{dataset_id}.pkl", "wb") as f:
-                pickle.dump(self._assets[dataset_id], f)
+            os.makedirs(collection.outdir, exist_ok=True)
+
+            self._data[dataset_id] = gpd.GeoDataFrame(
+                pd.concat(daily_data, ignore_index=True), crs=daily_data[0].crs
+            )
+            self._data[dataset_id].to_csv(f"{collection.outdir}/{dataset_id}.csv")
 
         return True
 
@@ -342,7 +378,6 @@ class MetloomProvider(BaseProvider):
         """
         variables = [self._allowed_assets[id][variable] for variable in collection]
         self.collections = variables
-        print(variables)
         regions = self._client.points_from_geometry(
             region,
             variables,
@@ -351,62 +386,3 @@ class MetloomProvider(BaseProvider):
             max_items=max_items,
         )
         return regions
-
-
-class SnotelProvider(MetloomProvider):
-    """Snotel Provider.
-
-    https://www.nrcs.usda.gov/wps/portal/wcc/home/snowClimateMonitoring/snowpack/snotelSensorData/
-    """
-
-    _client: Type[SnotelPointData] = SnotelPointData
-    _description: str = "Snotel"
-    _default_client_url: str = (
-        "https://wcc.sc.egov.usda.gov/awdbWebService/services?WSDL"
-    )
-    _allowed_variables = {
-        "WTEQ": SnotelVariables.SWE,
-        "SWE": SnotelVariables.SWE,
-        "SNWD": SnotelVariables.SNOWDEPTH,
-        "SNOW_DEPTH": SnotelVariables.SNOWDEPTH,
-        "TOBS": SnotelVariables.TEMP,
-        "AIR TEMP": SnotelVariables.TEMP,
-        "TAVG": SnotelVariables.TEMPAVG,
-        "TMIN": SnotelVariables.TEMPMIN,
-        "TMAX": SnotelVariables.TEMPMAX,
-        "PRCPSA": SnotelVariables.PRECIPITATION,
-        "PRECIPITATION": SnotelVariables.PRECIPITATION,
-    }
-
-    def extract_assets(self, dry_run: bool = False) -> bool:
-        """Extract assets from the collections in the configuration.
-
-        Returns: True if all assets extracted successfully, False otherwise.
-        """
-        pass
-
-
-class CDECProvider(MetloomProvider):
-    """Snotel Provider.
-
-    https://www.nrcs.usda.gov/wps/portal/wcc/home/snowClimateMonitoring/snowpack/snotelSensorData/
-    """
-
-    _client: Type[SnotelPointData] = SnotelPointData
-    _description: str = "Snotel"
-    _default_client_url: str = (
-        "https://wcc.sc.egov.usda.gov/awdbWebService/services?WSDL"
-    )
-    _allowed_variables = {
-        "WTEQ": SnotelVariables.SWE,
-        "SWE": SnotelVariables.SWE,
-        "SNWD": SnotelVariables.SNOWDEPTH,
-        "SNOW_DEPTH": SnotelVariables.SNOWDEPTH,
-        "TOBS": SnotelVariables.TEMP,
-        "AIR TEMP": SnotelVariables.TEMP,
-        "TAVG": SnotelVariables.TEMPAVG,
-        "TMIN": SnotelVariables.TEMPMIN,
-        "TMAX": SnotelVariables.TEMPMAX,
-        "PRCPSA": SnotelVariables.PRECIPITATION,
-        "PRECIPITATION": SnotelVariables.PRECIPITATION,
-    }
