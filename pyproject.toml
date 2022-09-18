@@ -12,7 +12,7 @@ skip_magic_trailing_comma = true
 
 [tool.isort]
 profile = "black"
-known_first_party = ["docs", "tests", "metaearth", "train"]
+known_first_party = ["docs", "tests", "multiearth", "train"]
 skip_gitignore = true
 color_output = true
 
