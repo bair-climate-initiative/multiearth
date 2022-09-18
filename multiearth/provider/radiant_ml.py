@@ -12,9 +12,9 @@ from loguru import logger
 from pystac_client.exceptions import APIError
 from radiant_mlhub import Dataset
 
-from .base import BaseProvider
 from ..config import CollectionSchema, ConfigSchema, ProviderKey
 from ..util.datetime import datetime_str_to_value
+from .base import BaseProvider
 
 
 def _list_wrapper(f: Any) -> Any:
