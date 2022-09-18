@@ -224,16 +224,16 @@ machine urs.earthdata.nasa.gov
     password <password>
 ```
 
-EarthData is a provider of providers, so you must include a `provider_id` in your `kwargs` argument to the provider, like the following example that accesses ASO data from NSIDC from EarthData ([config/nsidc.yaml](config/nsidc.yaml)):
+EarthData is a provider of providers, so you must include a `subprovider_id` in your `kwargs` argument to the provider, like the following example that accesses ASO data from NSIDC from EarthData ([config/nsidc.yaml](config/nsidc.yaml)):
 ```
-collections: 
-  ASO_50M_SD:
-    assets:
-      - data
-  provider: 
-    name: EARTHDATA
+providers:
+  - id : EARTHDATA
     kwargs:
-      provider_id: NSIDC_ECS
+      subprovider_id: NSIDC_ECS
+    collections:
+      - id: ASO_50M_SD
+        assets:
+          - all
 ```
 
 **Finding the Provider ID**: Consult [earthdata_providers.py](multiearth/provider/earthdata_providers.py) for a list of providers and their provider ids.
