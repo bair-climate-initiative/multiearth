@@ -12,8 +12,8 @@ from loguru import logger
 from pystac_client.exceptions import APIError
 from radiant_mlhub import Dataset
 
-from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
-from metaearth.provider.base import BaseProvider
+from multiearth.config import CollectionSchema, ConfigSchema, ProviderKey
+from multiearth.provider.base import BaseProvider
 
 from ..util.datetime import datetime_str_to_value
 

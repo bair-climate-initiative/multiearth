@@ -1,4 +1,4 @@
-"""CLI interface to MetaEarth."""
+"""CLI interface to MultiEarth."""
 import argparse
 from typing import Any, List, Tuple, cast
 
@@ -6,8 +6,8 @@ import omegaconf
 from loguru import logger
 from omegaconf import OmegaConf
 
-from metaearth.api import extract_assets
-from metaearth.config import ConfigSchema
+from multiearth.api import extract_assets
+from multiearth.config import ConfigSchema
 
 
 def _get_args() -> Tuple[argparse.Namespace, List[str]]:

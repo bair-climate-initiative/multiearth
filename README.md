@@ -1,46 +1,46 @@
-## MetaEarth: Download any remote sensing data from any provider using a single config.
+## MultiEarth: Download any remote sensing data from any provider using a single config.
 
-<img width="1361" alt="MetaEarth Explainer Diagram - download any data from any provider" src="https://user-images.githubusercontent.com/1455579/180137540-80b749d0-ab3d-469d-8122-f6b1a0df008f.png">
+<img width="1361" alt="MultiEarth Explainer Diagram - download any data from any provider" src="https://user-images.githubusercontent.com/1455579/180137540-80b749d0-ab3d-469d-8122-f6b1a0df008f.png">
 
 
 ---
 
-**🔥 Warning 🔥** This is an early alpha version of MetaEarth: things will change quickly, with little/no warning. The current MetaEarth explainer image above is aspirational: we're actively working on adding more data providers.
+**🔥 Warning 🔥** This is an early alpha version of MultiEarth: things will change quickly, with little/no warning. The current MultiEarth explainer image above is aspirational: we're actively working on adding more data providers.
 
 ---
 
 ## Quick Start
 
-Install MetaEarth as a library and download about 18MB of [Copernicus DEM](https://planetarycomputer.microsoft.com/dataset/cop-dem-glo-90) data from Microsoft Planetary Computer -- this small example should Just Work™ without any additional authentication.
+Install MultiEarth as a library and download about 18MB of [Copernicus DEM](https://planetarycomputer.microsoft.com/dataset/cop-dem-glo-90) data from Microsoft Planetary Computer -- this small example should Just Work™ without any additional authentication.
 
 ```bash
 # OPTIONAL: set up a conda environment (use at least python 3.7)
-conda create -n metaearth python=3.8 geopandas
-conda activate metaearth
+conda create -n multiearth python=3.8 geopandas
+conda activate multiearth
 
-git clone git@github.com:bair-climate-initiative/metaearth.git
-cd metaearth
+git clone git@github.com:bair-climate-initiative/multiearth.git
+cd multiearth
 pip install -e . 
 
 # Take a look at the download using a dry run (you could also set dry_run in the config file):
-python metaearth/cli.py --config config/demo.yaml system.dry_run=True
+python multiearth/cli.py --config config/demo.yaml system.dry_run=True
 
 # If everything looks good, remove the dry_run and download Copernicus DEM data from Microsoft Planetary Computer
-python metaearth/cli.py --config config/demo.yaml
+python multiearth/cli.py --config config/demo.yaml
 
 # see the extracted data in the output directory
 ls data/demo-extraction-dem-glo-90/cop-dem-glo-90/
 ```
 
-**Quick Explanation:** The config we're providing, [config/demo.yaml](config/demo.yaml), contains a fully annotated example: take a look at it to get a sense of config options and how to control MetaEarth. While playing with MetaEarth, set the dryrun config option in order to display a summary of the assets without downloading anything, e.g. `system.dry_run=True`. Note that to download more/different data from Microsoft Planetary Computer, you'll want to authenticate with them (see the instructions under [Provider Configurations](#provider-configurations)).
+**Quick Explanation:** The config we're providing, [config/demo.yaml](config/demo.yaml), contains a fully annotated example: take a look at it to get a sense of config options and how to control MultiEarth. While playing with MultiEarth, set the dryrun config option in order to display a summary of the assets without downloading anything, e.g. `system.dry_run=True`. Note that to download more/different data from Microsoft Planetary Computer, you'll want to authenticate with them (see the instructions under [Provider Configurations](#provider-configurations)).
 
 
 ## Documentation
 See the *Quick Start* instructions above and then consult [config/demo.yaml](config/demo.yaml) for annotated configuration (we'll keep this annotated config updated).
 
 
-### MetaEarth Configuration
-The following describes some common goals for configuring MetaEarth, such as specifying a data collection, geographical region, and timerange to extract data from, or specifying a provider to download data from. Consult [config/demo.yaml](config/demo.yaml) for an annotated configuration. The configuration schemas are defined in [metaearth/config.py](metaearth/config.py): take a look at `ConfigSchema`. 
+### MultiEarth Configuration
+The following describes some common goals for configuring MultiEarth, such as specifying a data collection, geographical region, and timerange to extract data from, or specifying a provider to download data from. Consult [config/demo.yaml](config/demo.yaml) for an annotated configuration. The configuration schemas are defined in [multiearth/config.py](multiearth/config.py): take a look at `ConfigSchema`. 
 
 **Specifying the data to be downloaded** takes place through the `collections` config option for each provider list in `providers`. For instance, to download [Copernicus DEM](https://planetarycomputer.microsoft.com/dataset/cop-dem-glo-90) from Microsoft Planetary Computer (MPC), which has the collection id `cop-dem-glo-90` (see below on how to find this), the config could look like:
 ```yaml
@@ -83,7 +83,7 @@ providers:
 ```
 2. Run a dry run to see what assets will be downloaded:
 ```bash
-python metaearth/cli.py --config path/to/your/config.yaml system.dry_run=True
+python multiearth/cli.py --config path/to/your/config.yaml system.dry_run=True
 ```
 which will print out a list of assets that will be downloaded and their descriptions, e.g.:
 ```
@@ -152,16 +152,16 @@ default_collection:
   max_items: -1
 ```
 
-**Dry run and DEBUG are your friend. You have lots of friends.** When dialing in your configuration, keep the `system.dry_run=True` option on your call to `metaearth/cli.py` (or set it in your config). Also, set the `system.log_level=DEBUG` option to see more verbose output.
+**Dry run and DEBUG are your friend. You have lots of friends.** When dialing in your configuration, keep the `system.dry_run=True` option on your call to `multiearth/cli.py` (or set it in your config). Also, set the `system.log_level=DEBUG` option to see more verbose output.
 
 ### Programmatic API Usage
-Programmatic MetaEarth API usage is still under development, but very much a part of our roadmap. For now, you can roughly do the following (let us know if you're interested in API support and how you'd like to use MetaEarth in this context):
+Programmatic MultiEarth API usage is still under development, but very much a part of our roadmap. For now, you can roughly do the following (let us know if you're interested in API support and how you'd like to use MultiEarth in this context):
 
 ```python
 from omegaconf import OmegaConf
 
-from metaearth.api import extract_assets
-from metaearth.config import ConfigSchema
+from multiearth.api import extract_assets
+from multiearth.config import ConfigSchema
 
 dict_cfg = dict(
   providers=[
@@ -189,7 +189,7 @@ print("Successfully extracted assets." if success else "Asset extraction failed.
 ## Provider Configurations
 ---
 
-**🔥 Warning 🔥** This is a very early alpha version of MetaEarth: there's only a few providers and meta-providers supported at the moment. Let us know if you need other providers and we can prioritize adding them.
+**🔥 Warning 🔥** This is a very early alpha version of MultiEarth: there's only a few providers and meta-providers supported at the moment. Let us know if you need other providers and we can prioritize adding them.
 
 ---
 
@@ -235,14 +235,14 @@ collections:
       provider_id: NSIDC_ECS
 ```
 
-**Finding the Provider ID**: Consult [earthdata_providers.py](metaearth/provider/earthdata_providers.py) for a list of providers and their provider ids.
+**Finding the Provider ID**: Consult [earthdata_providers.py](multiearth/provider/earthdata_providers.py) for a list of providers and their provider ids.
 
 **Finding the collection id**: TODO (this depends on the provider and we need to figure out a general approach)
 
 ### Radiant MLHub (provider key: RADIANT)
 **🔥 Warning 🔥** Radiant MLHub is under development and may be rough around the edges. Let us know if you have any issues.
 
-To query and access the data, you need to obtain an api key from [Radiant MLHub](https://mlhub.earth/). There are two ways to setup your api key with MetaEarth.
+To query and access the data, you need to obtain an api key from [Radiant MLHub](https://mlhub.earth/). There are two ways to setup your api key with MultiEarth.
 
 1. You can set an environment variable `MLHUB_API_KEY` as instructed by the [official documentation](https://radiant-mlhub.readthedocs.io/en/latest/authentication.html)
 2. You can hardcode it as a kwarg `api_key` in the config under provider section
@@ -312,12 +312,12 @@ When writing a test notebook, please ensure you are meeting the following criter
     * Avoid using `assets: all`; use `max_items: 1` instead.
     * See `nbs/grace-fo-plot.ipynb` for an example.
 
-Your tests may require additional libraries or dependencies to load or plot the data that are not required by the main MetaEarth library. To properly execute these tests, please add your dependencies to the `setup.cfg` file under the `[options.extras_require] -> tests` section.
+Your tests may require additional libraries or dependencies to load or plot the data that are not required by the main MultiEarth library. To properly execute these tests, please add your dependencies to the `setup.cfg` file under the `[options.extras_require] -> tests` section.
 
 ### Automated Test Runs and Authentication
 Tests are executed automatically via [GitHub Actions](https://github.com/features/actions) when a pull request is opened against the `main` or `release` branches. You are able to verify that your PR passes tests within the PR itself.
 
-If you are adding a new provider to MetaEarth which requires credentials in order to pull data, please work with the project maintainers to add a test username and password to the proper dotfiles and Actions Secrets for test runners to appropriately pull the data.
+If you are adding a new provider to MultiEarth which requires credentials in order to pull data, please work with the project maintainers to add a test username and password to the proper dotfiles and Actions Secrets for test runners to appropriately pull the data.
 
 Adding authentication for your tests will require editing the `.github/workflows/nb_integration.yaml` file. Work with the project maintainers to achieve this.
 
@@ -335,6 +335,6 @@ Adding authentication for your tests will require editing the `.github/workflows
 
 ## Related Projects
 
-* [Sat-Extractor](https://github.com/FrontierDevelopmentLab/sat-extractor). Sat-Extractor has a similar goal as MetaEarth, though at the moment it has been designed to run on Google Compute Engine, and as of the start of MetaEarth, Sat-Extractor can only be used with Sen2 and LandSats out-of-the-box. By starting MetaEarth with Microsoft's Planetary Computer, MetaEarth immediately has access to their full data catalog: https://planetarycomputer.microsoft.com/catalog (which subsumes the data accessible by Sat-Extractor plus ~100 other sources). Still, Sat-Extractor is an awesome and highly-configurable project: please use and support it if Sat-Extractor aligns with your goals =).
+* [Sat-Extractor](https://github.com/FrontierDevelopmentLab/sat-extractor). Sat-Extractor has a similar goal as MultiEarth, though at the moment it has been designed to run on Google Compute Engine, and as of the start of MultiEarth, Sat-Extractor can only be used with Sen2 and LandSats out-of-the-box. By starting MultiEarth with Microsoft's Planetary Computer, MultiEarth immediately has access to their full data catalog: https://planetarycomputer.microsoft.com/catalog (which subsumes the data accessible by Sat-Extractor plus ~100 other sources). Still, Sat-Extractor is an awesome and highly-configurable project: please use and support it if Sat-Extractor aligns with your goals =).
 
 * [openEO](https://openeo.cloud/) is a very well done project. We'll eventually add them as a provider. A key difference is that we wanted anyone to be able to add a new provider/data-source by opening a PR, rather than integrating with the openEO API.

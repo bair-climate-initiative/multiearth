@@ -14,7 +14,7 @@ from .provider.base import BaseProvider
 
 
 def extract_assets(cfg: ConfigSchema) -> bool:
-    """Run the full MetaEarth asset extraction process.
+    """Run the full MultiEarth asset extraction process.
 
     Args:
         cfg: a dict config object

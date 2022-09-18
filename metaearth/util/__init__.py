@@ -1,1 +1,0 @@
-"""Util package for metaearth."""
