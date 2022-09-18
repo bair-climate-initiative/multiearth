@@ -1,6 +1,7 @@
 ## MultiEarth: Download any remote sensing data from any provider using a single config.
 
-<img width="1361" alt="MultiEarth Explainer Diagram - download any data from any provider" src="https://user-images.githubusercontent.com/1455579/180137540-80b749d0-ab3d-469d-8122-f6b1a0df008f.png">
+
+<img width="1361" alt="MultiEarth Explainer Diagram - download any data from any provider" src="https://user-images.githubusercontent.com/1455579/190919978-95991d80-a095-4aa6-8769-98ff9d40598e.png">
 
 
 ---
