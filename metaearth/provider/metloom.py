@@ -34,12 +34,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """
 import os
+import time
 from datetime import datetime
 from functools import reduce
 from typing import Any, Dict, List, Type
 
 import geopandas as gpd
 import pandas as pd
+from loguru import logger
 from metloom.dataframe_utils import append_df
 from metloom.pointdata.base import PointData
 from metloom.pointdata.cdec import CDECPointData
@@ -329,6 +331,9 @@ class MetloomProvider(BaseProvider):
             self._client = self._clients[dataset_id]
             assets = [allowed_assets[asset] for asset in collection.assets]
             self._assets[dataset_id] = assets
+            logger.info(f"Extracting assets '{assets}' for {dataset_id}")
+            start_time = time.time()
+
             start_date_temp, end_date_temp = collection.datetime.split("/")
             start_date = datetime.strptime(start_date_temp, "%Y-%m-%d")
             end_date = datetime.strptime(end_date_temp, "%Y-%m-%d")
@@ -342,6 +347,20 @@ class MetloomProvider(BaseProvider):
                 dataset_id,
                 collection.max_items,
             )
+
+            region_time = time.time()
+            logger.info(
+                f"Region to items took {round((region_time - start_time)/60, 4)} minutes"
+            )
+
+            dataset_size = None
+            if dataset_size is not None:
+                sz_mb = int(dataset_size) // 1e6
+                logger.info(f"Total {dataset_id} dataset size: {sz_mb:,} MB")
+
+            if dry_run:
+                continue
+
             daily_data = []
             for location in self._locations[dataset_id].to_dataframe()["id"]:
                 daily_data.append(
@@ -349,9 +368,11 @@ class MetloomProvider(BaseProvider):
                         start_date, end_date, assets
                     )
                 )
+            data_time = time.time()
+            logger.info(
+                f"Downloading data took {round((data_time - start_time)/60, 4)} minutes"
+            )
 
-            if dry_run:
-                continue
             os.makedirs(collection.outdir, exist_ok=True)
 
             self._data[dataset_id] = gpd.GeoDataFrame(
