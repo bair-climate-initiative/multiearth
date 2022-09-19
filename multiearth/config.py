@@ -1,4 +1,4 @@
-"""Config schema for MetaEarth config."""
+"""Config schema for MultiEarth config."""
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
@@ -16,7 +16,7 @@ class ProviderKey(Enum):
 
 @dataclass
 class SystemSchema:
-    """System config schema for MetaEarth config."""
+    """System config schema for MultiEarth config."""
 
     log_outdir: str = field(default="./logs")
     log_level: str = "INFO"
@@ -29,7 +29,7 @@ class SystemSchema:
 
 @dataclass
 class CollectionSchema:
-    """Collection config schema for MetaEarth config."""
+    """Collection config schema for MultiEarth config."""
 
     id: Optional[str] = None
     assets: Optional[List[str]] = None
@@ -41,7 +41,7 @@ class CollectionSchema:
 
 @dataclass
 class ProviderSchema:
-    """Provider config schema for MetaEarth config."""
+    """Provider config schema for MultiEarth config."""
 
     id: ProviderKey
     kwargs: Dict[str, Any] = field(default_factory=dict)
@@ -50,7 +50,7 @@ class ProviderSchema:
 
 @dataclass
 class ConfigSchema:
-    """Top-level config schema for MetaEarth config."""
+    """Top-level config schema for MultiEarth config."""
 
     default_collection: CollectionSchema = field(default_factory=CollectionSchema)
     providers: List[ProviderSchema] = field(default_factory=list)

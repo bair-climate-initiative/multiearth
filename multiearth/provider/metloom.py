@@ -60,13 +60,13 @@ from metloom.variables import (
     VariableBase,
 )
 
-# from metaearth.assets import DownloadWrapper
-from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
-from metaearth.provider.base import BaseProvider
+# from multiearth.assets import DownloadWrapper
+from multiearth.config import CollectionSchema, ConfigSchema, ProviderKey
+from multiearth.provider.base import BaseProvider
 
 # from tqdm import tqdm
 
-# from metaearth.util.multi import create_download_workers_and_queues
+# from multiearth.util.multi import create_download_workers_and_queues
 
 
 class SnotelClient(SnotelPointData):  # type: ignore

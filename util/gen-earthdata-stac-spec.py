@@ -32,7 +32,7 @@ def main() -> None:
     templ += dict_str
     file_path = os.path.realpath(os.path.dirname(__file__))
     outfile = os.path.join(
-        file_path, "..", "metaearth", "provider", "earthdata_providers.py"
+        file_path, "..", "multiearth", "provider", "earthdata_providers.py"
     )
     with open(outfile, "w") as f:
         f.write(templ)
