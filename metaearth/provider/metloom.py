@@ -37,6 +37,9 @@ import os
 import time
 from datetime import datetime
 from functools import reduce
+
+# from queue import Empty
+# from time import sleep
 from typing import Any, Dict, List, Type
 
 import geopandas as gpd
@@ -57,8 +60,13 @@ from metloom.variables import (
     VariableBase,
 )
 
+# from metaearth.assets import DownloadWrapper
 from metaearth.config import CollectionSchema, ConfigSchema, ProviderKey
 from metaearth.provider.base import BaseProvider
+
+# from tqdm import tqdm
+
+# from metaearth.util.multi import create_download_workers_and_queues
 
 
 class SnotelClient(SnotelPointData):  # type: ignore
@@ -71,6 +79,7 @@ class SnotelClient(SnotelPointData):  # type: ignore
         variables: List[SensorDescription],
         start_date: datetime,
         end_date: datetime,
+        cfg: ConfigSchema,
         max_items: int = -1,
         **kwargs: Any,
     ) -> PointData.ITERATOR_CLASS:
@@ -111,6 +120,12 @@ class SnotelClient(SnotelPointData):  # type: ignore
             if len(response) > 0:
                 point_codes += response
 
+        def _download_wrapper_fn(station_triplet: str) -> pd.DataFrame:
+            """Asset download wrapper function for multiproc download."""
+            return pd.DataFrame.from_records(
+                [MetaDataSnotelClient(station_triplet=station_triplet).get_data()]
+            ).set_index("stationTriplet")
+
         # no duplicate codes
         point_codes = list(set(point_codes))
         dfs = []
@@ -120,6 +135,47 @@ class SnotelClient(SnotelPointData):  # type: ignore
                     [MetaDataSnotelClient(station_triplet=code).get_data()]
                 ).set_index("stationTriplet")
             )
+
+        # job_q, finished_q, fail_q = create_download_workers_and_queues(
+        #     cfg.system.max_concurrent_extractions,
+        #     cfg.system.max_download_attempts,
+        # )
+
+        # for ind, code in enumerate(point_codes):
+        #     dwrap = DownloadWrapper(
+        #         asset=variables,
+        #         download_func=_download_wrapper_fn,
+        #         download_kwargs=dict(
+        #             station_triplet=code,
+        #         ),
+        #     )
+        #     job_q.put(dwrap)
+
+        # tqdm_target = len(point_codes)
+        # tqdm_target_desc = "Stations"
+
+        # with tqdm(total=tqdm_target, desc=tqdm_target_desc) as pbar:
+        #     while True:
+        #         done_querying = False
+        #         try:
+        #             completed_query = finished_q.get(timeout=5)
+        #             dfs.append(completed_query)
+        #             pbar.update(1)
+        #             done_querying = True
+        #         except Empty:
+        #             # it's possible all extractions error'd out, and the queue would never return,
+        #             # so check periodically (after timeout)
+        #             pass
+
+        #         # TODO figure out how to do this without relying on internals
+        #         if job_q._unfinished_tasks._semlock._is_zero():  # type: ignore
+        #             pbar.update(tqdm_target - pbar.n)
+        #             break
+        #         if done_querying:
+        #             break
+        #         sleep(1)
+        # job_q.join()
+        # print(dfs)
 
         if len(dfs) > 0:
             df = reduce(lambda a, b: append_df(a, b), dfs)
@@ -290,7 +346,7 @@ class MetloomProvider(BaseProvider):
         },
     }
     _allowed_datasets: List[str] = ["SNOTEL", "CDEC"]
-    _locations: Dict[str, gpd.GeoDataFrame] = {}
+    _locations: Dict[str, PointData.ITERATOR_CLASS] = {}
     _assets: Dict[str, List[str]] = {}
     _data: Dict[str, gpd.GeoDataFrame] = {}
 
@@ -348,6 +404,8 @@ class MetloomProvider(BaseProvider):
                 collection.max_items,
             )
 
+            print(type(self._locations[dataset_id]), self._locations[dataset_id])
+
             region_time = time.time()
             logger.info(
                 f"Region to items took {round((region_time - start_time)/60, 4)} minutes"
@@ -378,6 +436,7 @@ class MetloomProvider(BaseProvider):
             self._data[dataset_id] = gpd.GeoDataFrame(
                 pd.concat(daily_data, ignore_index=True), crs=daily_data[0].crs
             )
+            print(len(daily_data))
             self._data[dataset_id].to_csv(f"{collection.outdir}/{dataset_id}.csv")
 
         return True
@@ -391,7 +450,7 @@ class MetloomProvider(BaseProvider):
         collection: List[str],
         id: str,
         max_items: int = -1,
-    ) -> gpd.GeoDataFrame:
+    ) -> PointData.ITERATOR_CLASS:
         """Return a dataframe of regions.
 
         Dataframe consists of location name, triplet id, datasource (likely NRCS for SNOTEL),
@@ -404,6 +463,7 @@ class MetloomProvider(BaseProvider):
             variables,
             start_date=start_date,
             end_date=end_date,
+            cfg=self.cfg,
             max_items=max_items,
         )
         return regions
