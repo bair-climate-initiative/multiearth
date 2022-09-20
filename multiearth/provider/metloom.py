@@ -218,6 +218,7 @@ class CdecClient(CDECPointData):  # type: ignore
         # return empty collection if we didn't find any points
         if search_df is None:
             return cls.ITERATOR_CLASS([])
+        print(search_df.columns)
         gdf = gpd.GeoDataFrame(
             search_df,
             geometry=gpd.points_from_xy(
