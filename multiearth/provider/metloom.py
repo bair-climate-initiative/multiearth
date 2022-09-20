@@ -218,13 +218,16 @@ class CdecClient(CDECPointData):  # type: ignore
         # return empty collection if we didn't find any points
         if search_df is None:
             return cls.ITERATOR_CLASS([])
-        print(search_df.columns)
+        if "Elevation Feet" in search_df.columns:
+            ef = "Elevation Feet"
+        if "ElevationFeet" in search_df.columns:
+            ef = "ElevationFeet"
         gdf = gpd.GeoDataFrame(
             search_df,
             geometry=gpd.points_from_xy(
                 search_df["Longitude"],
                 search_df["Latitude"],
-                z=search_df["Elevation Feet"],
+                z=search_df[ef],
             ),
         )
         # filter to points within shapefile
