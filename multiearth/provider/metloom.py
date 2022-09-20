@@ -37,9 +37,6 @@ import os
 import time
 from datetime import datetime
 from functools import reduce
-
-# from queue import Empty
-# from time import sleep
 from typing import Any, Dict, List, Type
 
 import geopandas as gpd
@@ -59,14 +56,10 @@ from metloom.variables import (
     SnotelVariables,
     VariableBase,
 )
+from tqdm.contrib.concurrent import thread_map
 
-# from multiearth.assets import DownloadWrapper
 from multiearth.config import CollectionSchema, ConfigSchema, ProviderKey
 from multiearth.provider.base import BaseProvider
-
-# from tqdm import tqdm
-
-# from multiearth.util.multi import create_download_workers_and_queues
 
 
 class SnotelClient(SnotelPointData):  # type: ignore
@@ -120,63 +113,19 @@ class SnotelClient(SnotelPointData):  # type: ignore
             if len(response) > 0:
                 point_codes += response
 
-        def _download_wrapper_fn(station_triplet: str) -> pd.DataFrame:
-            """Asset download wrapper function for multiproc download."""
-            return pd.DataFrame.from_records(
-                [MetaDataSnotelClient(station_triplet=station_triplet).get_data()]
-            ).set_index("stationTriplet")
-
         # no duplicate codes
         point_codes = list(set(point_codes))
-        dfs = []
-        for ind, code in enumerate(point_codes):
-            dfs.append(
-                pd.DataFrame.from_records(
-                    [MetaDataSnotelClient(station_triplet=code).get_data()]
-                ).set_index("stationTriplet")
-            )
 
-        # job_q, finished_q, fail_q = create_download_workers_and_queues(
-        #     cfg.system.max_concurrent_extractions,
-        #     cfg.system.max_download_attempts,
-        # )
+        res = thread_map(
+            lambda data_obj: data_obj.get_data(),
+            [MetaDataSnotelClient(station_triplet=code) for code in point_codes],
+            max_workers=cfg.system.max_concurrent_extractions,
+        )
 
-        # for ind, code in enumerate(point_codes):
-        #     dwrap = DownloadWrapper(
-        #         asset=variables,
-        #         download_func=_download_wrapper_fn,
-        #         download_kwargs=dict(
-        #             station_triplet=code,
-        #         ),
-        #     )
-        #     job_q.put(dwrap)
-
-        # tqdm_target = len(point_codes)
-        # tqdm_target_desc = "Stations"
-
-        # with tqdm(total=tqdm_target, desc=tqdm_target_desc) as pbar:
-        #     while True:
-        #         done_querying = False
-        #         try:
-        #             completed_query = finished_q.get(timeout=5)
-        #             dfs.append(completed_query)
-        #             pbar.update(1)
-        #             done_querying = True
-        #         except Empty:
-        #             # it's possible all extractions error'd out, and the queue would never return,
-        #             # so check periodically (after timeout)
-        #             pass
-
-        #         # TODO figure out how to do this without relying on internals
-        #         if job_q._unfinished_tasks._semlock._is_zero():  # type: ignore
-        #             pbar.update(tqdm_target - pbar.n)
-        #             break
-        #         if done_querying:
-        #             break
-        #         sleep(1)
-        # job_q.join()
-        # print(dfs)
-
+        dfs = [
+            pd.DataFrame.from_records([entry]).set_index("stationTriplet")
+            for entry in res
+        ]
         if len(dfs) > 0:
             df = reduce(lambda a, b: append_df(a, b), dfs)
         else:
@@ -419,13 +368,15 @@ class MetloomProvider(BaseProvider):
             if dry_run:
                 continue
 
-            daily_data = []
-            for location in self._locations[dataset_id].to_dataframe()["id"]:
-                daily_data.append(
-                    self._client(location, "MyStation").get_daily_data(
-                        start_date, end_date, assets
-                    )
-                )
+            daily_data = thread_map(
+                lambda data_obj: data_obj.get_daily_data(start_date, end_date, assets),
+                [
+                    self._client(loc, "MyStation")
+                    for loc in self._locations[dataset_id].to_dataframe()["id"]
+                ],
+                max_workers=self.cfg.system.max_concurrent_extractions,
+            )
+
             data_time = time.time()
             logger.info(
                 f"Downloading data took {round((data_time - start_time)/60, 4)} minutes"

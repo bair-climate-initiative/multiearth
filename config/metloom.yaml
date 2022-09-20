@@ -24,4 +24,4 @@ system:
   log_outdir: ./logs
   remove_existing_if_wrong_size: True
   query_asset_sizes: False
-  dry_run: True
+
