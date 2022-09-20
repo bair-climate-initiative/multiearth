@@ -358,6 +358,11 @@ class MetloomProvider(BaseProvider):
                 f"Region to items took {round((region_time - start_time)/60, 4)} minutes"
             )
 
+            if len(self._locations[dataset_id]) == 0:
+                logger.info(
+                    f"No datasets found in {collection.aoi_file} for {dataset_id}"
+                )
+
             dataset_size = None
             if dataset_size is not None:
                 sz_mb = int(dataset_size) // 1e6
