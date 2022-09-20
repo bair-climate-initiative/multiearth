@@ -11,9 +11,9 @@ providers:
           - AIR TEMP
       - id: CDEC
         datetime: 2017-04-01/2021-04-23
-        aoi_file: config/aoi/demo_landcover.json
+        aoi_file: config/aoi/conus-expanded.json
         max_items: 3
-        outdir: data/cdec_land_cover_north_america
+        outdir: data/cdec_conus_expanded
         assets:
           - SWE
 
