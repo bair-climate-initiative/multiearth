@@ -379,6 +379,7 @@ class MetloomProvider(BaseProvider):
                 ],
                 max_workers=self.cfg.system.max_concurrent_extractions,
             )
+            assert len(daily_data) == 0, "No data"
 
             data_time = time.time()
             logger.info(
