@@ -353,8 +353,6 @@ class MetloomProvider(BaseProvider):
                 collection.max_items,
             )
 
-            print(type(self._locations[dataset_id]), self._locations[dataset_id])
-
             region_time = time.time()
             logger.info(
                 f"Region to items took {round((region_time - start_time)/60, 4)} minutes"
@@ -385,9 +383,8 @@ class MetloomProvider(BaseProvider):
             os.makedirs(collection.outdir, exist_ok=True)
 
             self._data[dataset_id] = gpd.GeoDataFrame(
-                pd.concat(daily_data, ignore_index=True), crs=daily_data[0].crs
+                pd.concat(daily_data, ignore_index=False), crs=daily_data[0].crs
             )
-            print(len(daily_data))
             self._data[dataset_id].to_csv(f"{collection.outdir}/{dataset_id}.csv")
 
         return True
