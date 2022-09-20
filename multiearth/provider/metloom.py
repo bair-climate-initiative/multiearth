@@ -223,7 +223,7 @@ class CdecClient(CDECPointData):  # type: ignore
             geometry=gpd.points_from_xy(
                 search_df["Longitude"],
                 search_df["Latitude"],
-                z=search_df["ElevationFeet"],
+                z=search_df["Elevation Feet"],
             ),
         )
         # filter to points within shapefile
@@ -315,6 +315,7 @@ class MetloomProvider(BaseProvider):
 
     def extract_assets(self, dry_run: bool = False) -> bool:
         """Download a dataset to assigned output_dir."""
+        return_false = False
         for collection in self.collections:
             if dry_run:
                 collection.max_items = 10
@@ -362,6 +363,8 @@ class MetloomProvider(BaseProvider):
                 logger.info(
                     f"No datasets found in {collection.aoi_file} for {dataset_id}"
                 )
+                return_false = True
+                continue
 
             dataset_size = None
             if dataset_size is not None:
@@ -370,7 +373,6 @@ class MetloomProvider(BaseProvider):
 
             if dry_run:
                 continue
-
             daily_data = thread_map(
                 lambda data_obj: data_obj.get_daily_data(start_date, end_date, assets),
                 [
@@ -379,7 +381,6 @@ class MetloomProvider(BaseProvider):
                 ],
                 max_workers=self.cfg.system.max_concurrent_extractions,
             )
-            assert len(daily_data) == 0, "No data"
 
             data_time = time.time()
             logger.info(
@@ -392,7 +393,8 @@ class MetloomProvider(BaseProvider):
                 pd.concat(daily_data, ignore_index=False), crs=daily_data[0].crs
             )
             self._data[dataset_id].to_csv(f"{collection.outdir}/{dataset_id}.csv")
-
+        if return_false:
+            return False
         return True
 
     # method override
