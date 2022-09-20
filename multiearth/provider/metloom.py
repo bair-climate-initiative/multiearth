@@ -225,9 +225,7 @@ class CdecClient(CDECPointData):  # type: ignore
         gdf = gpd.GeoDataFrame(
             search_df,
             geometry=gpd.points_from_xy(
-                search_df["Longitude"],
-                search_df["Latitude"],
-                z=search_df[ef],
+                search_df["Longitude"], search_df["Latitude"], z=search_df[ef]
             ),
         )
         # filter to points within shapefile
