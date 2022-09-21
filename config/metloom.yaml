@@ -7,8 +7,7 @@ providers:
         max_items: 3
         outdir: data/snotel_land_cover_north_america
         assets:
-          - SWE
-          - AIR TEMP
+          - all
       - id: CDEC
         datetime: 2017-04-01/2021-04-23
         aoi_file: config/aoi/conus-expanded.json
@@ -22,6 +21,3 @@ system:
   max_download_attempts: 3
   log_level: INFO
   log_outdir: ./logs
-  remove_existing_if_wrong_size: True
-  query_asset_sizes: False
-
