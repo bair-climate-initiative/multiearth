@@ -18,6 +18,5 @@ providers:
 
 system:
   max_concurrent_extractions: 10
-  max_download_attempts: 3
   log_level: INFO
   log_outdir: ./logs
