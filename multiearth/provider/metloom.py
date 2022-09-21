@@ -331,11 +331,13 @@ class MetloomProvider(BaseProvider):
             ), "Collection {dataset_id} outdir is not set"
             allowed_assets = self._allowed_assets[dataset_id]
             assert collection.assets is not None
+            if "all" in collection.assets:
+                collection.assets = list(allowed_assets.keys())
             assert all(
                 asset in allowed_assets for asset in collection.assets
             ), "asset is not in allowed assets"
             self._client = self._clients[dataset_id]
-            assets = [allowed_assets[asset] for asset in collection.assets]
+            assets = list({allowed_assets[asset] for asset in collection.assets})
             self._assets[dataset_id] = assets
             logger.info(f"Extracting assets '{assets}' for {dataset_id}")
             start_time = time.time()
