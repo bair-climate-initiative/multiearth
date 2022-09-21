@@ -1,0 +1,20 @@
+default_collection:
+  outdir: data
+  datetime: 2000-05-01/2005-03-01
+  aoi_file: config/aoi/conus-expanded.json
+
+providers:
+  - id : EARTHDATA
+    kwargs:
+      subprovider_id: NSIDC_ECS
+
+    collections:
+      - id: AE_5DSno
+        assets:
+          - all
+      - id: AE_DySno
+        assets:
+          - all
+      - id: AE_MoSno
+        assets:
+          - all
