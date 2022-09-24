@@ -1,0 +1,31 @@
+default_collection:
+  outdir: data
+  datetime: 2017-02-16/2017-02-22
+  aoi_file: config/aoi/conus-expanded.json
+
+providers:
+  - id : EARTHDATA
+    kwargs:
+      subprovider_id: NSIDC_ECS
+
+    collections: 
+      - id: SNEX17_SNOWSAR
+        assets:
+          - browse
+      - id: SNEX17_SNOWSAR_RAW
+        assets:
+          - none
+  
+system:
+  # how many concurrent procs to use for 
+  # extracting the assets
+  # set to -1 to use all available procs
+  max_concurrent_extractions: 5
+
+  # Remove existing files if their filesize does not match the size 
+  # of the asset on the remote server and re-extract
+  remove_existing_if_wrong_size: True
+
+  # If assets are missing file sizes, query using HTTP request
+  # (this can be slow for large collections)
+  query_asset_sizes: True
