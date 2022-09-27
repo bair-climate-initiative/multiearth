@@ -12,6 +12,7 @@ class ProviderKey(Enum):
     EARTHDATA = "EarthDataProvider"
     RADIANT = "RadiantMLHub"
     XARR_MPC = "XarrMPC"
+    METLOOM = "Metloom"
 
 
 @dataclass

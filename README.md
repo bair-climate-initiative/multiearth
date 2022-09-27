@@ -257,6 +257,14 @@ providers:
 
 See [radiant_ml_landcover.yaml](config/randiant_ml_landcover.yaml) for an example of how to configure a Radiant MLHub collection.
 
+### Metloom (provider key: METLOOM)
+**🔥 Warning 🔥** Metloom is under development and may be rough around the edges. Let us know if you have any issues.
+
+Metloom uses the [Metloom library](https://metloom.readthedocs.io/en/latest/index.html) to pull data from the [SNOTEL](https://www.nrcs.usda.gov/wps/portal/wcc/home/snowClimateMonitoring/snowpack/snotelSensorData/) and [CDEC](https://cdec.water.ca.gov/) data sources.
+
+See [metloom.yaml](config/metloom.yaml) for an example of how to configure a Metloom collection. Check [metloom.py](multiearth/provider/metloom.py) for a list of valid SNOTEL and CDEC assets.
+
+
 ## Contributing and Development
 The general flow for development looks like this:
 
