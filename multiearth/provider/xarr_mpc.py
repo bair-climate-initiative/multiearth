@@ -55,8 +55,11 @@ class XarrMPC(MicrosoftPlanetaryComputer):
             cat = catalog.get_collection(collection.id)
             asset = planetary_computer.sign(cat.assets["zarr-abfs"])
             
-            store = fsspec.get_mapper(asset.href, **asset.extra_fields["xarray:storage_options"])
-            ds = xr.open_zarr(store, **asset.extra_fields["xarray:open_kwargs"])
+            ds = xr.open_zarr(
+                asset.href,
+                storage_options=asset.extra_fields["xarray:storage_options"],
+                **asset.extra_fields["xarray:open_kwargs"]
+            )
             
             # Select just the relevant features.
             if not collection.assets == 'all':
