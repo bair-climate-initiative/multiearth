@@ -6,6 +6,7 @@ import planetary_computer as pc
 import pystac
 import pystac_client
 from .mpc import MicrosoftPlanetaryComputer
+import planetary_computer
 
 import fsspec
 import xarray as xr
@@ -14,7 +15,7 @@ import geopandas as gpd
 from shapely.geometry import Point
 import numpy as np
 
-from os.path.import join
+from os.path import join
 
 from ..util.datetime import datetime_str_to_value
 
@@ -37,12 +38,9 @@ class XarrMPC(MicrosoftPlanetaryComputer):
 
     def extract_assets(self, dry_run: bool=False) -> bool:
         """Download a dataset to assigned output dir"""
-        self.all_assets = ExtractAssetCollection()
-        
-        
         # TODO: use the inhereted 
         catalog = pystac_client.Client.open(
-           self._default_clinet_url
+           self._default_client_url
         )
             
         for collection in self.collections: 
@@ -86,6 +84,9 @@ class XarrMPC(MicrosoftPlanetaryComputer):
                 
             
             if not dry_run:
+                print('beginning download')
+                print('info')
+                print(ds.info())
                 ds.load().to_netcdf(path=join(collection.outdir, 'result.nc'))
                 if not mask is None:
                     np.save(join(collection.outdir, 'aoi_mask.npy'))
