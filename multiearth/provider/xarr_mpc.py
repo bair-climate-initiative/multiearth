@@ -39,9 +39,7 @@ class XarrMPC(MicrosoftPlanetaryComputer):
     def extract_assets(self, dry_run: bool=False) -> bool:
         """Download a dataset to assigned output dir"""
         # TODO: use the inhereted 
-        catalog = pystac_client.Client.open(
-           self._default_client_url
-        )
+        catalog = self._client
             
         for collection in self.collections: 
             dataset=collection.id
