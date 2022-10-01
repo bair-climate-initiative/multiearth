@@ -14,7 +14,7 @@ from .mpc import MicrosoftPlanetaryComputer
 class XarrMPC(MicrosoftPlanetaryComputer):
     """Download data and extract xarray assets from MPC."""
 
-    def get_mask(self, ds: xr.DataSet, aoi: Polygon) -> np.array:
+    def get_mask(self, ds: xr.Dataset, aoi: Polygon) -> np.array:
         """Return a mask for resulting values that gets the area of interest."""
         mask = np.empty((len(ds.lat.values), len(ds.lon.values)))
         mask[:] = np.nan
@@ -47,9 +47,13 @@ class XarrMPC(MicrosoftPlanetaryComputer):
                 **asset.extra_fields["xarray:open_kwargs"],
             )
 
+            print("collection.assets", collection.assets, type(collection.assets))
             # Select just the relevant features.
-            if not collection.assets == ["all"]:
-                ds = ds[[collection.assets]]
+
+            if collection.assets is not None:
+                asset_list = list(collection.assets)
+                if not asset_list == ["all"]:
+                    ds = ds[asset_list]
 
             # Select just the relevant datetime.
             if not collection.datetime == "..":
