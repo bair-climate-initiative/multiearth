@@ -3,9 +3,11 @@ from os.path import join
 
 import geopandas as gpd
 import numpy as np
+import numpy.typing as npt
 import planetary_computer
 import xarray as xr
 from shapely.geometry import Point, Polygon
+from xarray import open_zarr
 
 from ..util.datetime import datetime_str_to_value
 from .mpc import MicrosoftPlanetaryComputer
@@ -14,7 +16,7 @@ from .mpc import MicrosoftPlanetaryComputer
 class XarrMPC(MicrosoftPlanetaryComputer):
     """Download data and extract xarray assets from MPC."""
 
-    def get_mask(self, ds: xr.Dataset, aoi: Polygon) -> np.array:
+    def get_mask(self, ds: xr.Dataset, aoi: Polygon) -> npt.NDArray:
         """Return a mask for resulting values that gets the area of interest."""
         mask = np.empty((len(ds.lat.values), len(ds.lon.values)))
         mask[:] = np.nan
@@ -37,11 +39,12 @@ class XarrMPC(MicrosoftPlanetaryComputer):
             assert (
                 collection.outdir is not None
             ), "Collection {dataset_id} outdir is not set"
+            assert collection.id is not None, "Collection not specified"
             # Try to get the dataset from MPC
             cat = catalog.get_collection(collection.id)
             asset = planetary_computer.sign(cat.assets["zarr-abfs"])
 
-            ds = xr.open_zarr(
+            ds = open_zarr(
                 asset.href,
                 storage_options=asset.extra_fields["xarray:storage_options"],
                 **asset.extra_fields["xarray:open_kwargs"],
