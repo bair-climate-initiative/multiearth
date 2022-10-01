@@ -90,11 +90,14 @@ class XarrMPC(MicrosoftPlanetaryComputer):
                 print(ds.info())
                 ds.load().to_netcdf(path=join(collection.outdir, 'result.nc'))
                 if not mask is None:
-                    np.save(join(collection.outdir, 'aoi_mask.npy'))
+                    np.save(join(collection.outdir, 'aoi_mask.npy'), mask)
             else: 
                 print('dry run')
                 print('dataset info')
                 print(' --- ')
+                print(ds.info())
+                ds = ds.to_dataframe()
+                print('memory usage and info')
                 print(ds.info())
                 print(' --- ')
                 

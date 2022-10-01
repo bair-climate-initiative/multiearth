@@ -46,7 +46,7 @@ system:
   # how many concurrent procs to use for 
   # extracting the assets
   # set to -1 to use all available procs
-  max_concurrent_extractions: 10
+  max_concurrent_extractions: -1
 
   # number of attempt downloading an asset if error/issues encountered
   max_download_attempts: 3
