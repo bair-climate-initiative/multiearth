@@ -41,8 +41,8 @@ class XarrMPC(MicrosoftPlanetaryComputer):
             ), "Collection {dataset_id} outdir is not set"
             assert self._client is not None, "Client not specified"
             # Try to get the dataset from MPC
-
             cat = catalog.get_collection(collection.id)
+            assert cat is not None, "Collection not found"
             asset = planetary_computer.sign(cat.assets["zarr-abfs"])
 
             ds = open_zarr(
