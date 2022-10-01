@@ -16,7 +16,7 @@ from .mpc import MicrosoftPlanetaryComputer
 class XarrMPC(MicrosoftPlanetaryComputer):
     """Download data and extract xarray assets from MPC."""
 
-    def get_mask(self, ds: xr.Dataset, aoi: Polygon) -> npt.NDArray:
+    def get_mask(self, ds: xr.Dataset, aoi: Polygon) -> npt.NDArray[np.float64]:
         """Return a mask for resulting values that gets the area of interest."""
         mask = np.empty((len(ds.lat.values), len(ds.lon.values)))
         mask[:] = np.nan
@@ -39,8 +39,9 @@ class XarrMPC(MicrosoftPlanetaryComputer):
             assert (
                 collection.outdir is not None
             ), "Collection {dataset_id} outdir is not set"
-            assert collection.id is not None, "Collection not specified"
+            assert self._client is not None, "Client not specified"
             # Try to get the dataset from MPC
+
             cat = catalog.get_collection(collection.id)
             asset = planetary_computer.sign(cat.assets["zarr-abfs"])
 
