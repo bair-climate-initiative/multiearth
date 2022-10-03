@@ -92,7 +92,6 @@ class XarrMPC(MicrosoftPlanetaryComputer):
                 print("beginning download")
                 print("info")
                 print(ds.info())
-                print("collection outdir", collection.outdir)
                 ds.load().to_netcdf(path=join(collection.outdir, "result.nc"))
                 if mask is not None:
                     np.save(join(collection.outdir, "aoi_mask.npy"), mask)
