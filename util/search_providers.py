@@ -3,7 +3,7 @@
 import argparse
 import json
 from collections import defaultdict
-from typing import DefaultDict, List, Optional
+from typing import Dict, List, Optional
 
 import requests
 
@@ -25,10 +25,6 @@ def main(keywords: Optional[List[str]]) -> None:
         elif "planetarycomputer" in provider_url:
             collection_urls += [provider_url]
     collections = []
-    # if keywords is None:
-    #     return_all = True
-    # else:
-    #     return_all = False
     for collection_url in collection_urls:
         response = requests.get(f"{collection_url}/collections").text
 
@@ -50,6 +46,10 @@ def main(keywords: Optional[List[str]]) -> None:
 
     print("Number of collections:", len(collections))
     if keywords is None:
+
+        def sort_alpha(collection_values: Dict[str, str]) -> str:
+            return collection_values["title"]
+
         with open("all_collections.json", "w") as file:
             json.dump(collections, file, indent=2)
         grouped_collections = defaultdict(list)
@@ -57,7 +57,7 @@ def main(keywords: Optional[List[str]]) -> None:
             title = collection["title"][0]
             grouped_collections[title].append(collection)
         for value in grouped_collections.values():
-            value.sort(key=lambda x: x["title"])
+            value.sort(key=sort_alpha)
         with open("all_collections_alphabetical.json", "w") as file:
             json.dump(grouped_collections, file, indent=2)
     else:
