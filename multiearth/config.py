@@ -11,6 +11,7 @@ class ProviderKey(Enum):
     MPC = "MicrosoftPlanetaryComputer"
     EARTHDATA = "EarthDataProvider"
     RADIANT = "RadiantMLHub"
+    XARR_MPC = "XarrMPC"
     METLOOM = "Metloom"
 
 

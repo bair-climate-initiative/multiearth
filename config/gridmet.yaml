@@ -1,0 +1,12 @@
+default_collection:
+  outdir: data
+  datetime: 2019-06-01/2019-06-02
+  aoi_file: config/aoi/demo.json
+
+providers:
+  - id: XARR_MPC
+    collections:
+      - id: gridmet
+        assets:
+          - air_temperature
+  

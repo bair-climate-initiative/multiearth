@@ -7,6 +7,7 @@ from .earthdata import EarthDataProvider
 from .metloom import MetloomProvider
 from .mpc import MicrosoftPlanetaryComputer
 from .radiant_ml import RadiantMLHub
+from .xarr_mpc import XarrMPC
 
 __all__ = [
     "get_provider",
@@ -33,5 +34,7 @@ def get_provider(
         return RadiantMLHub(id, cfg, collections, **kwargs)
     elif id == ProviderKey.METLOOM:
         return MetloomProvider(id, cfg, collections, **kwargs)
+    elif id == ProviderKey.XARR_MPC:
+        return XarrMPC(id, cfg, collections, **kwargs)
     else:
         raise ValueError(f"Unknown provider {id}")
