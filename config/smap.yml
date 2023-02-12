@@ -1,0 +1,29 @@
+default_collection:
+  outdir: data
+  datetime: 2022-08-04/2022-08-07
+  aoi_file: config/aoi/conus-expanded.json
+
+providers:
+  - id : EARTHDATA
+    kwargs:
+      subprovider_id: NSIDC_ECS
+
+    collections:
+      # SMAP Enhanced L3 Radiometer Global and Polar Grid Daily 9 km EASE-Grid Soil Moisture V005
+      - id: SPL3SMP_E
+        assets:
+          - all
+  
+system:
+  # how many concurrent procs to use for 
+  # extracting the assets
+  # set to -1 to use all available procs
+  max_concurrent_extractions: 5
+
+  # Remove existing files if their filesize does not match the size 
+  # of the asset on the remote server and re-extract
+  remove_existing_if_wrong_size: True
+
+  # If assets are missing file sizes, query using HTTP request
+  # (this can be slow for large collections)
+  query_asset_sizes: False
